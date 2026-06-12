@@ -1,0 +1,80 @@
+{
+  "users": {
+    "UID_DIRECTEUR": {
+      "nom": "M. Benali",
+      "email": "directeur@hotelatlas.ma",
+      "role": "directeur",
+      "hotel_id": "hotel_atlas",
+      "hotel_nom": "Hôtel Atlas Marrakech"
+    },
+    "UID_GOUV_GEN": {
+      "nom": "Mme Fassi",
+      "email": "gouvernante@hotelatlas.ma",
+      "role": "gouv_generale",
+      "hotel_id": "hotel_atlas",
+      "hotel_nom": "Hôtel Atlas Marrakech"
+    },
+    "UID_GOUV_ETAGE": {
+      "nom": "Mme Idrissi",
+      "email": "etage1@hotelatlas.ma",
+      "role": "gouv_etage",
+      "hotel_id": "hotel_atlas",
+      "hotel_nom": "Hôtel Atlas Marrakech",
+      "etage": 1
+    },
+    "UID_STAFF_1": {
+      "nom": "Fatima",
+      "email": "fatima@hotelatlas.ma",
+      "role": "staff",
+      "hotel_id": "hotel_atlas",
+      "hotel_nom": "Hôtel Atlas Marrakech"
+    },
+    "UID_RECEPTION": {
+      "nom": "Karim",
+      "email": "reception@hotelatlas.ma",
+      "role": "reception",
+      "hotel_id": "hotel_atlas",
+      "hotel_nom": "Hôtel Atlas Marrakech"
+    },
+    "UID_MAINTENANCE": {
+      "nom": "Hassan",
+      "email": "maintenance@hotelatlas.ma",
+      "role": "maintenance",
+      "hotel_id": "hotel_atlas",
+      "hotel_nom": "Hôtel Atlas Marrakech"
+    }
+  },
+  "hotels": {
+    "hotel_atlas": {
+      "nom": "Hôtel Atlas Marrakech",
+      "nb_etages": 3,
+      "chambres": {
+        "101": { "num": 101, "etage": 1, "type": "double", "statut": "sale",     "assignee_nom": "Fatima" },
+        "102": { "num": 102, "etage": 1, "type": "simple", "statut": "en_cours", "assignee_nom": "Fatima" },
+        "103": { "num": 103, "etage": 1, "type": "suite",  "statut": "prete",    "assignee_nom": "Fatima" },
+        "104": { "num": 104, "etage": 1, "type": "double", "statut": "validee",  "assignee_nom": "Fatima" },
+        "105": { "num": 105, "etage": 1, "type": "simple", "statut": "occupee",  "assignee_nom": "" },
+        "201": { "num": 201, "etage": 2, "type": "double", "statut": "sale",     "assignee_nom": "Nadia" },
+        "202": { "num": 202, "etage": 2, "type": "simple", "statut": "prete",    "assignee_nom": "Nadia" },
+        "203": { "num": 203, "etage": 2, "type": "suite",  "statut": "occupee",  "assignee_nom": "" },
+        "301": { "num": 301, "etage": 3, "type": "double", "statut": "sale",     "assignee_nom": "Zineb" },
+        "302": { "num": 302, "etage": 3, "type": "simple", "statut": "validee",  "assignee_nom": "Zineb" }
+      },
+      "zones": {
+        "couloir_1": { "nom": "Couloir étage 1", "type": "couloir", "statut": "fait",     "etage": 1 },
+        "couloir_2": { "nom": "Couloir étage 2", "type": "couloir", "statut": "a_faire",  "etage": 2 },
+        "lingerie":  { "nom": "Lingerie",         "type": "lingerie","statut": "a_faire",  "etage": 0 },
+        "sport":     { "nom": "Salle de sport",   "type": "sport",   "statut": "fait",     "etage": 0 }
+      },
+      "incidents": {
+        "inc_001": {
+          "chambre": "108",
+          "description": "Robinet qui fuit salle de bain",
+          "statut": "ouvert",
+          "signale_par": "Mme Idrissi",
+          "created_at": 1700000000000
+        }
+      }
+    }
+  }
+}

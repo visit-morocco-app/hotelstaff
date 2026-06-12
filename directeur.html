@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>HotelStaff — Directeur</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Guard screen (accès refusé) -->
+<div class="hs-guard" id="guard-screen">
+  <div class="hs-guard-icon">🔒</div>
+  <div class="hs-guard-title">Accès refusé</div>
+  <div class="hs-guard-sub">Vous n'avez pas les droits pour accéder à cet espace.</div>
+  <button class="hs-btn hs-btn-secondary" style="margin-top:20px" onclick="window.location.href='login.html'">Retour connexion</button>
+</div>
+
+<!-- App -->
+<div id="app" style="display:none">
+  <header class="hs-header">
+    <div class="hs-header-left">
+      <div class="hs-logo" style="background:var(--purple)">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <div>
+        <div class="hs-hotel-name" id="hotel-name">Hôtel</div>
+      </div>
+    </div>
+    <div class="hs-header-right">
+      <span class="hs-badge hs-badge-directeur" id="role-badge">Directeur</span>
+      <button class="hs-btn hs-btn-ghost" id="btn-logout">Déconnexion</button>
+    </div>
+  </header>
+
+  <!-- Contenu à développer semaine 2 -->
+  <div style="padding:32px 16px;text-align:center;color:var(--muted)">
+    <div style="font-size:40px;margin-bottom:12px">🏨</div>
+    <p style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">Espace Directeur</p>
+    <p style="font-size:13px">Connecté en tant que : <strong id="user-nom"></strong></p>
+    <p style="font-size:12px;margin-top:8px">Modules en cours de développement…</p>
+  </div>
+</div>
+
+<div class="hs-toast" id="hs-toast"></div>
+
+<script type="module">
+import { initPage, setupLogout } from './auth.js';
+
+const profil = await initPage('directeur');
+document.getElementById('app').style.display = 'block';
+setupLogout();
+</script>
+</body>
+</html>

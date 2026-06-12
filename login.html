@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>HotelStaff — Connexion</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .version { font-size: 11px; color: var(--muted); margin-top: 32px; }
+  .divider { display:flex; align-items:center; gap:10px; margin: 4px 0; }
+  .divider span { font-size:12px; color:var(--muted); white-space:nowrap; }
+  .divider::before, .divider::after { content:''; flex:1; height:0.5px; background:var(--border); }
+</style>
+</head>
+<body>
+
+<div class="hs-login" id="login-screen">
+  <!-- Logo -->
+  <div class="hs-login-logo">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  </div>
+
+  <h1 class="hs-login-title">HotelStaff</h1>
+  <p class="hs-login-sub">Connectez-vous à votre espace</p>
+
+  <div class="hs-login-form">
+    <input class="hs-input" type="email"    id="email" placeholder="Adresse email" autocomplete="email">
+    <input class="hs-input" type="password" id="pass"  placeholder="Mot de passe" autocomplete="current-password">
+    <button class="hs-btn hs-btn-primary hs-btn-full" id="btn-login">
+      Se connecter
+    </button>
+    <div class="hs-login-error" id="login-error">Email ou mot de passe incorrect</div>
+  </div>
+
+  <p class="version">HotelStaff v1.0 · Par Amine</p>
+</div>
+
+<!-- Spinner pendant vérification auth -->
+<div id="loading" style="position:fixed;inset:0;background:var(--surface);display:flex;align-items:center;justify-content:center;z-index:400;">
+  <div style="text-align:center">
+    <div style="width:36px;height:36px;border:3px solid var(--teal-light);border-top-color:var(--teal);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 12px;"></div>
+    <p style="font-size:13px;color:var(--muted);">Chargement…</p>
+  </div>
+</div>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<script type="module">
+import { login, onAuth, getUserProfile, ROLE_PAGES } from './firebase.js';
+
+// Si déjà connecté → redirect direct
+onAuth(async (user) => {
+  document.getElementById('loading').style.display = 'none';
+  if (user) {
+    const profil = await getUserProfile(user.uid);
+    if (profil && ROLE_PAGES[profil.role]) {
+      window.location.href = ROLE_PAGES[profil.role];
+    }
+  }
+});
+
+// Login
+document.getElementById('btn-login').addEventListener('click', async () => {
+  const email = document.getElementById('email').value.trim();
+  const pass  = document.getElementById('pass').value;
+  const errEl = document.getElementById('login-error');
+  const btn   = document.getElementById('btn-login');
+
+  if (!email || !pass) {
+    errEl.textContent = 'Veuillez remplir tous les champs';
+    errEl.classList.add('show'); return;
+  }
+
+  btn.textContent = 'Connexion…';
+  btn.disabled = true;
+  errEl.classList.remove('show');
+
+  try {
+    const cred   = await login(email, pass);
+    const profil = await getUserProfile(cred.user.uid);
+    if (profil && ROLE_PAGES[profil.role]) {
+      window.location.href = ROLE_PAGES[profil.role];
+    } else {
+      errEl.textContent = 'Profil introuvable. Contactez votre administrateur.';
+      errEl.classList.add('show');
+      btn.textContent = 'Se connecter'; btn.disabled = false;
+    }
+  } catch(e) {
+    errEl.textContent = 'Email ou mot de passe incorrect';
+    errEl.classList.add('show');
+    btn.textContent = 'Se connecter'; btn.disabled = false;
+  }
+});
+
+// Entrée clavier
+document.getElementById('pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('btn-login').click();
+});
+</script>
+</body>
+</html>
