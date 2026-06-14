@@ -5,51 +5,551 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>HotelStaff — Gouvernante Générale</title>
 <link rel="stylesheet" href="style.css">
+<style>
+:root {
+  --gold:#C9A96E; --gold-light:#F5EDD9; --gold-dark:#8B6914;
+  --gd:#1B3A2D; --gm:#2D5A40;
+  --cream:#FAF8F3; --cb:#EDE8DC;
+  --tm:#5C5347; --tl:#9C9080;
+  --s-sale:#C0504D; --s-cours:#E08B14;
+  --s-prete:#2D6A3F; --s-val:#C9A96E;
+}
+
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:var(--cream); color:#1A1714; min-height:100vh; }
+
+/* ── Header ── */
+.header { background:var(--gd); padding:14px 16px 0; position:sticky; top:0; z-index:100; }
+.header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.hotel-name { font-size:15px; font-weight:600; color:#FAF8F3; }
+.hotel-sub  { font-size:11px; color:var(--gold); margin-top:1px; }
+.avatar { width:36px; height:36px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:var(--gd); flex-shrink:0; cursor:pointer; }
+.user-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.user-name { font-size:13px; color:#EDE8DC; font-weight:500; }
+.user-role { font-size:11px; color:var(--gold); }
+.shift-tabs { display:flex; }
+.shift-tab { flex:1; text-align:center; padding:9px 0; font-size:13px; font-weight:500; cursor:pointer; color:rgba(255,255,255,0.4); border-bottom:2px solid transparent; transition:all 0.2s; border:none; background:none; }
+.shift-tab.active { color:var(--gold); border-bottom:2px solid var(--gold); }
+
+/* ── Date bar ── */
+.date-bar { background:var(--gold-light); padding:9px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:0.5px solid var(--cb); }
+.date-txt { font-size:12px; color:var(--gold-dark); font-weight:500; }
+.progress-pill { font-size:11px; color:var(--gm); background:#EAF3E8; padding:3px 10px; border-radius:20px; font-weight:500; }
+
+/* ── Content ── */
+.content { padding:12px; display:flex; flex-direction:column; gap:8px; padding-bottom:100px; }
+
+/* ── Section accordéon ── */
+.section { background:#fff; border-radius:12px; border:0.5px solid var(--cb); overflow:hidden; }
+.section-header { display:flex; align-items:center; justify-content:space-between; padding:13px 14px; cursor:pointer; user-select:none; }
+.section-icon { width:30px; height:30px; border-radius:8px; background:var(--gold-light); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:15px; }
+.section-title { font-size:14px; font-weight:600; color:#1A1714; }
+.section-sub { font-size:11px; color:var(--tl); margin-top:1px; }
+.warn-badge { font-size:11px; background:#FDF3E3; color:#8B5E14; padding:3px 8px; border-radius:20px; white-space:nowrap; }
+.ok-badge   { font-size:11px; background:#EAF3E8; color:var(--gm); padding:3px 8px; border-radius:20px; white-space:nowrap; }
+.chevron { font-size:16px; color:var(--tl); transition:transform 0.2s; }
+.chevron.open { transform:rotate(180deg); }
+.section-body { border-top:0.5px solid var(--cb); display:none; }
+.section-body.open { display:block; }
+
+/* ── Légende ── */
+.legend { display:flex; gap:14px; flex-wrap:wrap; padding:8px 14px; border-bottom:0.5px solid var(--cb); background:var(--cream); }
+.leg-item { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--tl); }
+.leg-dot  { width:11px; height:11px; border-radius:50%; flex-shrink:0; }
+.ld-sale  { background:var(--s-sale); }
+.ld-cours { background:var(--s-cours); }
+.ld-prete { background:transparent; border:2.5px solid var(--s-prete); }
+.ld-val   { color:var(--gold); font-size:14px; line-height:1; }
+
+/* ── Ligne chambre ── */
+.ch-row { display:flex; align-items:center; padding:11px 14px; border-bottom:0.5px solid var(--cb); gap:10px; }
+.ch-row:last-child { border-bottom:none; }
+.ch-num  { font-size:16px; font-weight:600; color:#1A1714; width:36px; flex-shrink:0; }
+.ch-info { flex:1; }
+.ch-type { font-size:12px; color:var(--tm); }
+.ch-right { display:flex; align-items:center; gap:7px; flex-shrink:0; }
+
+/* Indicateurs statut */
+.s-dot { width:13px; height:13px; border-radius:50%; flex-shrink:0; }
+.sd-sale  { background:var(--s-sale); }
+.sd-cours { background:var(--s-cours); }
+.sd-prete { background:transparent; border:2.5px solid var(--s-prete); }
+.sd-val   { color:var(--gold); font-size:17px; line-height:1; }
+.sd-occ   { background:#888; }
+
+/* Boutons action */
+.act-btn { width:30px; height:30px; border-radius:8px; border:0.5px solid var(--cb); background:var(--cream); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:background 0.15s; }
+.act-btn:active { background:#EDE8DC; }
+.act-btn-val { width:30px; height:30px; border-radius:8px; border:0.5px solid var(--gd); background:var(--gd); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+
+/* ── Ligne zone ── */
+.zone-row { display:flex; align-items:center; padding:11px 14px; border-bottom:0.5px solid var(--cb); gap:10px; }
+.zone-row:last-child { border-bottom:none; }
+.zone-icon { font-size:16px; color:var(--tl); flex-shrink:0; }
+.zone-name { flex:1; font-size:13px; color:#1A1714; }
+
+/* ── Modal bottom sheet ── */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal { background:#fff; border-radius:20px 20px 0 0; padding:20px 20px 36px; width:100%; max-width:500px; transform:translateY(24px); transition:transform 0.25s; }
+.modal-overlay.open .modal { transform:translateY(0); }
+.modal-handle { width:36px; height:4px; background:var(--cb); border-radius:2px; margin:0 auto 18px; }
+.modal-title { font-size:17px; font-weight:600; margin-bottom:4px; }
+.modal-sub { font-size:13px; color:var(--tl); margin-bottom:16px; }
+.modal-section { margin-bottom:14px; }
+.modal-label { font-size:12px; color:var(--tl); margin-bottom:6px; font-weight:500; }
+.staff-list { display:flex; flex-direction:column; gap:6px; }
+.staff-item { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:8px; border:0.5px solid var(--cb); cursor:pointer; transition:background 0.15s; }
+.staff-item:active { background:var(--gold-light); }
+.staff-item.selected { border-color:var(--gd); background:var(--gold-light); }
+.staff-nom { font-size:13px; color:#1A1714; font-weight:500; }
+.staff-dispo { font-size:11px; color:var(--gm); }
+.obs-input { width:100%; padding:10px 12px; border:0.5px solid var(--cb); border-radius:8px; font-size:14px; background:var(--cream); outline:none; resize:none; font-family:inherit; }
+.obs-input:focus { border-color:var(--gd); }
+.modal-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
+.modal-btn { padding:12px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; border:0.5px solid var(--cb); background:#fff; color:#1A1714; text-align:center; }
+.modal-btn-primary { background:var(--gd); color:var(--gold); border-color:var(--gd); }
+.modal-btn-cancel  { color:var(--tl); }
+
+/* ── Bouton soumettre ── */
+.submit-wrap { position:fixed; bottom:0; left:0; right:0; padding:12px 16px 28px; background:var(--cream); border-top:0.5px solid var(--cb); z-index:99; }
+.submit-btn { width:100%; padding:14px; border-radius:12px; border:none; font-size:15px; font-weight:600; letter-spacing:0.02em; background:#C8C0B0; color:#FAF8F3; cursor:not-allowed; transition:all 0.3s; }
+.submit-btn.active { background:var(--gd); color:var(--gold); cursor:pointer; }
+.submit-note { font-size:11px; color:var(--tl); text-align:center; margin-top:6px; }
+
+/* ── Toast ── */
+.toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:#1A1714; color:#fff; padding:10px 22px; border-radius:20px; font-size:13px; font-weight:500; z-index:500; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.toast.show { opacity:1; }
+
+/* ── Guard ── */
+.guard { position:fixed; inset:0; background:#fff; display:none; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center; z-index:300; }
+.guard.show { display:flex; }
+
+/* ── Responsive tablette ── */
+@media(min-width:600px) {
+  .content { max-width:640px; margin:0 auto; }
+  .submit-wrap { max-width:640px; margin:0 auto; left:50%; transform:translateX(-50%); border-radius:12px 12px 0 0; }
+}
+</style>
 </head>
 <body>
 
-<!-- Guard screen (accès refusé) -->
-<div class="hs-guard" id="guard-screen">
-  <div class="hs-guard-icon">🔒</div>
-  <div class="hs-guard-title">Accès refusé</div>
-  <div class="hs-guard-sub">Vous n'avez pas les droits pour accéder à cet espace.</div>
-  <button class="hs-btn hs-btn-secondary" style="margin-top:20px" onclick="window.location.href='login.html'">Retour connexion</button>
+<div class="guard" id="guard-screen">
+  <div style="font-size:40px;margin-bottom:16px;">🔒</div>
+  <div style="font-size:18px;font-weight:600;margin-bottom:8px;">Accès refusé</div>
+  <div style="font-size:14px;color:var(--tl);margin-bottom:20px;">Vous n'avez pas les droits pour cet espace.</div>
+  <button class="modal-btn" onclick="window.location.href='login.html'">Retour connexion</button>
 </div>
 
-<!-- App -->
 <div id="app" style="display:none">
-  <header class="hs-header">
-    <div class="hs-header-left">
-      <div class="hs-logo" style="background:var(--teal)">
-        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      </div>
-      <div>
-        <div class="hs-hotel-name" id="hotel-name">Hôtel</div>
-      </div>
-    </div>
-    <div class="hs-header-right">
-      <span class="hs-badge hs-badge-gouv-gen" id="role-badge">Gouvernante Générale</span>
-      <button class="hs-btn hs-btn-ghost" id="btn-logout">Déconnexion</button>
-    </div>
-  </header>
 
-  <!-- Contenu à développer semaine 2 -->
-  <div style="padding:32px 16px;text-align:center;color:var(--muted)">
-    <div style="font-size:40px;margin-bottom:12px">🏨</div>
-    <p style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">Espace Gouvernante Générale</p>
-    <p style="font-size:13px">Connecté en tant que : <strong id="user-nom"></strong></p>
-    <p style="font-size:12px;margin-top:8px">Modules en cours de développement…</p>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="hotel-name" id="hotel-name">Hôtel</div>
+        <div class="hotel-sub">Tableau de bord</div>
+      </div>
+      <div class="avatar" id="avatar-initials" onclick="doLogout()">MF</div>
+    </div>
+    <div class="user-row">
+      <div>
+        <div class="user-name" id="user-nom">—</div>
+        <div class="user-role">Gouvernante Générale</div>
+      </div>
+    </div>
+    <div class="shift-tabs">
+      <button class="shift-tab active" id="tab-matin" onclick="setShift('matin')">☀ Shift matin</button>
+      <button class="shift-tab" id="tab-soir" onclick="setShift('soir')">☾ Shift soir</button>
+    </div>
+  </div>
+
+  <!-- Date bar -->
+  <div class="date-bar">
+    <span class="date-txt" id="date-display">—</span>
+    <span class="progress-pill" id="progress-label">—</span>
+  </div>
+
+  <!-- Contenu -->
+  <div class="content">
+
+    <!-- Section chambres -->
+    <div class="section" id="section-chambres">
+      <div class="section-header" onclick="toggleSection('chambres')">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="section-icon">🚪</div>
+          <div>
+            <div class="section-title">Chambres</div>
+            <div class="section-sub" id="sub-chambres">—</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="badge-chambres" class="warn-badge">—</span>
+          <span class="chevron open" id="chev-chambres">▾</span>
+        </div>
+      </div>
+      <div class="section-body open" id="body-chambres">
+        <div class="legend">
+          <div class="leg-item"><div class="leg-dot ld-sale"></div>Sale</div>
+          <div class="leg-item"><div class="leg-dot ld-cours"></div>En cours</div>
+          <div class="leg-item"><div class="leg-dot ld-prete"></div>Prête</div>
+          <div class="leg-item"><span class="ld-val">★</span>Validée</div>
+        </div>
+        <div id="chambres-list"></div>
+      </div>
+    </div>
+
+    <!-- Section zones -->
+    <div class="section" id="section-zones">
+      <div class="section-header" onclick="toggleSection('zones')">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="section-icon">🏢</div>
+          <div>
+            <div class="section-title">Zones communes</div>
+            <div class="section-sub" id="sub-zones">—</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="badge-zones" class="warn-badge">—</span>
+          <span class="chevron" id="chev-zones">▾</span>
+        </div>
+      </div>
+      <div class="section-body" id="body-zones">
+        <div id="zones-list"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bouton soumettre -->
+  <div class="submit-wrap">
+    <button class="submit-btn" id="submit-btn" onclick="soumettreShift()">Soumettre le shift</button>
+    <div class="submit-note" id="submit-note">En attente de validation</div>
+  </div>
+
+</div>
+
+<!-- Modal modifier chambre -->
+<div class="modal-overlay" id="modal-chambre" onclick="closeModal('modal-chambre', event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-ch-title">Chambre 101</div>
+    <div class="modal-sub" id="modal-ch-sub">Double · Étage 1</div>
+
+    <div class="modal-section">
+      <div class="modal-label">Assigner à</div>
+      <div class="staff-list" id="staff-list"></div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-label">Observation</div>
+      <textarea class="obs-input" id="obs-input" rows="2" placeholder="Ajouter une note…"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modal-chambre')">Annuler</button>
+      <button class="modal-btn modal-btn-primary" onclick="sauvegarderChambre()">Enregistrer</button>
+    </div>
   </div>
 </div>
 
-<div class="hs-toast" id="hs-toast"></div>
+<!-- Modal modifier zone -->
+<div class="modal-overlay" id="modal-zone" onclick="closeModal('modal-zone', event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-zone-title">Zone</div>
+    <div class="modal-sub">Mettre à jour le statut</div>
+    <div class="modal-section">
+      <div class="staff-list" id="zone-statuts"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modal-zone')">Annuler</button>
+      <button class="modal-btn modal-btn-primary" onclick="sauvegarderZone()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script type="module">
-import { initPage, setupLogout } from './auth.js';
+import { onAuth, getUserProfile, logout,
+         watchChambres, updateChambre,
+         watchZones, updateZone,
+         watchStaff, ouvrirShift, cloturerShift } from './firebase.js';
 
-const profil = await initPage('gouv_generale');
-document.getElementById('app').style.display = 'block';
-setupLogout();
+let profil = null;
+let shiftActif = 'matin';
+let chambresData = {};
+let zonesData = {};
+let staffData = {};
+let chambreSelectee = null;
+let zoneSelectee = null;
+let staffSelectionne = null;
+let nouveauStatutZone = null;
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+onAuth(async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  profil = await getUserProfile(user.uid);
+  if (!profil || profil.role !== 'gouv_generale') {
+    document.getElementById('guard-screen').classList.add('show'); return;
+  }
+  initApp();
+});
+
+function initApp() {
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('hotel-name').textContent = profil.hotel_nom || 'Hôtel';
+  document.getElementById('user-nom').textContent = profil.nom || '';
+  const initiales = (profil.nom || 'GG').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('avatar-initials').textContent = initiales;
+  afficherDate();
+  watchChambres(profil.hotel_id, data => { chambresData = data || {}; renderChambres(); updateSubmit(); });
+  watchZones(profil.hotel_id,   data => { zonesData   = data || {}; renderZones();   updateSubmit(); });
+  watchStaff(profil.hotel_id,   data => { staffData   = data || {}; });
+}
+
+// ── Date ──────────────────────────────────────────────────────────────────────
+function afficherDate() {
+  const d = new Date();
+  const opts = { weekday:'long', day:'numeric', month:'long', year:'numeric' };
+  const str = d.toLocaleDateString('fr-FR', opts);
+  document.getElementById('date-display').textContent = str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+// ── Shift ─────────────────────────────────────────────────────────────────────
+window.setShift = (s) => {
+  shiftActif = s;
+  document.getElementById('tab-matin').classList.toggle('active', s === 'matin');
+  document.getElementById('tab-soir').classList.toggle('active',  s === 'soir');
+  showToast(s === 'matin' ? '☀ Shift matin sélectionné' : '☾ Shift soir sélectionné');
+};
+
+// ── Render chambres ───────────────────────────────────────────────────────────
+function renderChambres() {
+  const vals = Object.entries(chambresData).map(([k,v]) => ({id:k,...v}));
+  vals.sort((a,b) => a.num - b.num);
+  const total   = vals.length;
+  const pretes  = vals.filter(c => c.statut === 'prete' || c.statut === 'validee').length;
+  const validees = vals.filter(c => c.statut === 'validee').length;
+  const enAttente = vals.filter(c => c.statut !== 'validee' && c.statut !== 'occupee').length;
+
+  document.getElementById('sub-chambres').textContent = `${validees} / ${total} validées`;
+  document.getElementById('progress-label').textContent = `${pretes} / ${total} prêtes`;
+
+  const badge = document.getElementById('badge-chambres');
+  if(enAttente === 0) { badge.textContent = 'Tout validé ✓'; badge.className = 'ok-badge'; }
+  else { badge.textContent = `${enAttente} en attente`; badge.className = 'warn-badge'; }
+
+  document.getElementById('chambres-list').innerHTML = vals.map(c => `
+    <div class="ch-row">
+      <div class="ch-num">${c.num}</div>
+      <div class="ch-info">
+        <div class="ch-type">${TYPES[c.type]||c.type} · Étage ${c.etage}</div>
+        ${c.observation ? `<div style="font-size:11px;color:var(--gold-dark);margin-top:2px;">📝 ${c.observation}</div>` : ''}
+      </div>
+      <div class="ch-right">
+        ${statutIndicateur(c.statut)}
+        ${c.statut === 'prete'
+          ? `<div class="act-btn" title="Consulter" onclick="ouvrirModalChambre('${c.id}')">
+               <span style="font-size:14px;color:var(--tl);">👁</span>
+             </div>
+             <div class="act-btn-val" onclick="validerChambre('${c.id}')" title="Valider">
+               <span style="color:var(--gold);font-size:14px;">✓</span>
+             </div>`
+          : c.statut === 'validee'
+          ? `<div class="act-btn" title="Consulter" onclick="ouvrirModalChambre('${c.id}')">
+               <span style="font-size:14px;color:var(--tl);">👁</span>
+             </div>`
+          : `<div class="act-btn" title="Modifier" onclick="ouvrirModalChambre('${c.id}')">
+               <span style="font-size:13px;color:var(--tl);">✏</span>
+             </div>`
+        }
+      </div>
+    </div>`).join('');
+}
+
+const TYPES = { simple:'Simple', double:'Double', suite:'Suite' };
+
+function statutIndicateur(s) {
+  if(s === 'sale')     return `<div class="s-dot sd-sale"></div>`;
+  if(s === 'en_cours') return `<div class="s-dot sd-cours"></div>`;
+  if(s === 'prete')    return `<div class="s-dot sd-prete"></div>`;
+  if(s === 'validee')  return `<span class="sd-val">★</span>`;
+  if(s === 'occupee')  return `<div class="s-dot sd-occ"></div>`;
+  return '';
+}
+
+// ── Render zones ──────────────────────────────────────────────────────────────
+function renderZones() {
+  const vals = Object.entries(zonesData).map(([k,v]) => ({id:k,...v}));
+  const total    = vals.length;
+  const faites   = vals.filter(z => z.statut === 'fait').length;
+  const enAttente = vals.filter(z => z.statut !== 'fait').length;
+
+  document.getElementById('sub-zones').textContent = `${faites} / ${total} faites`;
+  const badge = document.getElementById('badge-zones');
+  if(enAttente === 0) { badge.textContent = 'Tout fait ✓'; badge.className = 'ok-badge'; }
+  else { badge.textContent = `${enAttente} en attente`; badge.className = 'warn-badge'; }
+
+  document.getElementById('zones-list').innerHTML = vals.map(z => `
+    <div class="zone-row">
+      <span class="zone-icon">${ZONE_ICONS[z.type]||'📍'}</span>
+      <div class="zone-name">${z.nom}</div>
+      ${z.statut === 'fait'
+        ? `<span style="color:var(--gold);font-size:16px;">★</span>`
+        : `<div class="s-dot sd-sale"></div>`}
+      <div class="act-btn" onclick="ouvrirModalZone('${z.id}')">
+        <span style="font-size:13px;color:var(--tl);">✏</span>
+      </div>
+    </div>`).join('');
+}
+
+const ZONE_ICONS = { couloir:'🏢', lingerie:'🧺', sport:'🏋', lobby:'🚪' };
+
+// ── Bouton soumettre ──────────────────────────────────────────────────────────
+function updateSubmit() {
+  const chambresOK = Object.values(chambresData).every(c => c.statut === 'validee' || c.statut === 'occupee');
+  const zonesOK    = Object.values(zonesData).every(z => z.statut === 'fait');
+  const btn  = document.getElementById('submit-btn');
+  const note = document.getElementById('submit-note');
+  if(chambresOK && zonesOK) {
+    btn.classList.add('active'); btn.disabled = false;
+    note.textContent = 'Tout est validé — prêt à soumettre';
+  } else {
+    btn.classList.remove('active'); btn.disabled = true;
+    const nbCh = Object.values(chambresData).filter(c => c.statut !== 'validee' && c.statut !== 'occupee').length;
+    const nbZo = Object.values(zonesData).filter(z => z.statut !== 'fait').length;
+    const parts = [];
+    if(nbCh > 0) parts.push(`${nbCh} chambre${nbCh>1?'s':''}`);
+    if(nbZo > 0) parts.push(`${nbZo} zone${nbZo>1?'s':''}`);
+    note.textContent = parts.join(' et ') + ' en attente';
+  }
+}
+
+// ── Accordéon ────────────────────────────────────────────────────────────────
+window.toggleSection = (id) => {
+  const body = document.getElementById('body-'+id);
+  const chev = document.getElementById('chev-'+id);
+  body.classList.toggle('open');
+  chev.classList.toggle('open');
+};
+
+// ── Valider chambre ───────────────────────────────────────────────────────────
+window.validerChambre = async (id) => {
+  await updateChambre(profil.hotel_id, id, { statut:'validee' });
+  showToast(`★ Chambre ${chambresData[id]?.num} validée`);
+};
+
+window.consulterChambre = (id) => {
+  const c = chambresData[id];
+  showToast(`Chambre ${c?.num} — ${TYPES[c?.type]} · Étage ${c?.etage}`);
+};
+
+// ── Modal chambre ─────────────────────────────────────────────────────────────
+window.ouvrirModalChambre = (id) => {
+  chambreSelectee = id;
+  staffSelectionne = chambresData[id]?.assignee_id || null;
+  const c = chambresData[id];
+  document.getElementById('modal-ch-title').textContent = `Chambre ${c?.num}`;
+  document.getElementById('modal-ch-sub').textContent = `${TYPES[c?.type]||''} · Étage ${c?.etage}`;
+  document.getElementById('obs-input').value = c?.observation || '';
+  const staffVals = Object.entries(staffData).map(([k,v]) => ({id:k,...v}));
+  document.getElementById('staff-list').innerHTML = staffVals.length
+    ? staffVals.map(s => `
+        <div class="staff-item ${s.id === staffSelectionne ? 'selected':''}" onclick="selStaff('${s.id}')">
+          <div>
+            <div class="staff-nom">${s.nom}</div>
+            <div class="staff-dispo">Disponible</div>
+          </div>
+          ${s.id === staffSelectionne ? '<span style="color:var(--gd);font-weight:600;">✓</span>' : ''}
+        </div>`).join('')
+    : '<div style="font-size:13px;color:var(--tl);padding:8px 0;">Aucun staff configuré</div>';
+  document.getElementById('modal-chambre').classList.add('open');
+};
+
+window.selStaff = (id) => {
+  staffSelectionne = id;
+  document.querySelectorAll('.staff-item').forEach(el => {
+    const isSelected = el.getAttribute('onclick') === `selStaff('${id}')`;
+    el.classList.toggle('selected', isSelected);
+  });
+};
+
+window.sauvegarderChambre = async () => {
+  if(!chambreSelectee) return;
+  const obs  = document.getElementById('obs-input').value;
+  const staff = staffData[staffSelectionne];
+  await updateChambre(profil.hotel_id, chambreSelectee, {
+    assignee_id:  staffSelectionne || '',
+    assignee_nom: staff?.nom || '',
+    observation:  obs
+  });
+  closeModal('modal-chambre');
+  showToast('Chambre mise à jour ✓');
+};
+
+// ── Modal zone ────────────────────────────────────────────────────────────────
+window.ouvrirModalZone = (id) => {
+  zoneSelectee = id;
+  nouveauStatutZone = zonesData[id]?.statut || 'a_faire';
+  document.getElementById('modal-zone-title').textContent = zonesData[id]?.nom || 'Zone';
+  document.getElementById('zone-statuts').innerHTML = [
+    { val:'a_faire', label:'À faire',   icon:'⬜' },
+    { val:'en_cours', label:'En cours', icon:'🟡' },
+    { val:'fait',     label:'Fait ★',   icon:'★'  },
+  ].map(s => `
+    <div class="staff-item ${s.val === nouveauStatutZone ? 'selected':''}" onclick="selZoneStatut('${s.val}')">
+      <div class="staff-nom">${s.icon} ${s.label}</div>
+      ${s.val === nouveauStatutZone ? '<span style="color:var(--gd);font-weight:600;">✓</span>' : ''}
+    </div>`).join('');
+  document.getElementById('modal-zone').classList.add('open');
+};
+
+window.selZoneStatut = (val) => {
+  nouveauStatutZone = val;
+  document.querySelectorAll('#zone-statuts .staff-item').forEach((el, i) => {
+    el.classList.toggle('selected', i === ['a_faire','en_cours','fait'].indexOf(val));
+  });
+};
+
+window.sauvegarderZone = async () => {
+  if(!zoneSelectee) return;
+  await updateZone(profil.hotel_id, zoneSelectee, { statut: nouveauStatutZone });
+  closeModal('modal-zone');
+  showToast('Zone mise à jour ✓');
+};
+
+// ── Soumettre shift ───────────────────────────────────────────────────────────
+window.soumettreShift = async () => {
+  await ouvrirShift(profil.hotel_id, {
+    shift: shiftActif,
+    gouvernante_id: profil.uid,
+    gouvernante_nom: profil.nom,
+    nb_chambres: Object.keys(chambresData).length,
+  });
+  showToast('✅ Shift soumis avec succès !');
+  setTimeout(() => { document.getElementById('submit-btn').textContent = 'Shift soumis ✓'; }, 500);
+};
+
+// ── Logout ────────────────────────────────────────────────────────────────────
+window.doLogout = async () => {
+  await logout();
+  window.location.href = 'login.html';
+};
+
+// ── Modals ────────────────────────────────────────────────────────────────────
+window.closeModal = (id, e) => {
+  if(e && e.target.id !== id) return;
+  document.getElementById(id).classList.remove('open');
+};
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
 </script>
 </body>
 </html>
