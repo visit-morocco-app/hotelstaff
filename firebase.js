@@ -50,7 +50,8 @@ export const onAuth = (cb) => onAuthStateChanged(auth, cb);
 // Récupère le profil complet de l'user connecté (rôle, nom, hotelId…)
 export const getUserProfile = async (uid) => {
   const snap = await get(ref(db, `users/${uid}`));
-  return snap.exists() ? snap.val() : null;
+  if (!snap.exists()) return null;
+  return { ...snap.val(), uid }; // on injecte l'uid dans le profil
 };
 
 // ── Chambres ──────────────────────────────────────────────────────────────────
