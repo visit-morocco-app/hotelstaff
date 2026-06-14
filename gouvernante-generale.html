@@ -370,14 +370,11 @@ function renderChambres() {
       </div>
       <div class="ch-right">
         ${statutIndicateur(c.statut)}
-        ${c.statut === 'prete'
+        ${c.statut === 'validee'
           ? `<div class="act-btn" title="Consulter" onclick="ouvrirModalChambre('${c.id}')">
                <span style="font-size:14px;color:var(--tl);">👁</span>
-             </div>
-             <div class="act-btn-val" onclick="validerChambre('${c.id}')" title="Valider">
-               <span style="color:var(--gold);font-size:14px;">✓</span>
              </div>`
-          : c.statut === 'validee'
+          : c.statut === 'occupee'
           ? `<div class="act-btn" title="Consulter" onclick="ouvrirModalChambre('${c.id}')">
                <span style="font-size:14px;color:var(--tl);">👁</span>
              </div>`
