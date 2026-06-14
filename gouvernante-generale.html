@@ -219,6 +219,26 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
       </div>
     </div>
 
+    <!-- Section équipe étages -->
+    <div class="section" id="section-equipe">
+      <div class="section-header" onclick="toggleSection('equipe')">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="section-icon">👔</div>
+          <div>
+            <div class="section-title">Équipe étages</div>
+            <div class="section-sub" id="sub-equipe">—</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="badge-equipe" class="ok-badge">—</span>
+          <span class="chevron" id="chev-equipe">▾</span>
+        </div>
+      </div>
+      <div class="section-body" id="body-equipe">
+        <div id="equipe-list"></div>
+      </div>
+    </div>
+
   </div>
 
   <!-- Bouton soumettre -->
@@ -306,7 +326,7 @@ function initApp() {
   afficherDate();
   watchChambres(profil.hotel_id, data => { chambresData = data || {}; renderChambres(); updateSubmit(); });
   watchZones(profil.hotel_id,   data => { zonesData   = data || {}; renderZones();   updateSubmit(); });
-  watchStaff(profil.hotel_id,   data => { staffData   = data || {}; });
+  watchStaff(profil.hotel_id,   data => { staffData   = data || {}; renderEquipe(); });
 }
 
 // ── Date ──────────────────────────────────────────────────────────────────────
@@ -406,6 +426,47 @@ function renderZones() {
 }
 
 const ZONE_ICONS = { couloir:'🏢', lingerie:'🧺', sport:'🏋', lobby:'🚪' };
+
+// ── Render équipe étages ──────────────────────────────────────────────────────
+function renderEquipe() {
+  const equipe = [
+    { id: 'i3NVFIO6nFNa5h0sLK90Knn5lzJ2', nom: 'Mme Idrissi', etage: 1, present: true },
+  ];
+  const total    = equipe.length;
+  const presents = equipe.filter(g => g.present).length;
+  const absents  = equipe.filter(g => !g.present).length;
+
+  document.getElementById('sub-equipe').textContent = `${presents} / ${total} présente${total>1?'s':''}`;
+  const badge = document.getElementById('badge-equipe');
+  if(absents === 0) { badge.textContent = 'Toutes présentes ✓'; badge.className = 'ok-badge'; }
+  else { badge.textContent = `${absents} absente${absents>1?'s':''}`; badge.className = 'warn-badge'; }
+
+  document.getElementById('equipe-list').innerHTML = equipe.map(g => `
+    <div class="ch-row">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--gold-light);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--gd);flex-shrink:0;">
+        ${g.nom.split(' ').map(w=>w[0]).join('').slice(0,2)}
+      </div>
+      <div class="ch-info" style="margin-left:10px;">
+        <div style="font-size:13px;font-weight:500;color:#1A1714;">${g.nom}</div>
+        <div class="ch-type">Gouvernante · Étage ${g.etage}</div>
+      </div>
+      <div class="ch-right">
+        <span style="font-size:11px;padding:3px 8px;border-radius:20px;${g.present
+          ? 'background:#EAF3E8;color:#2D6A3F;'
+          : 'background:#FAEAEA;color:#8B2020;'}">
+          ${g.present ? '● Présente' : '● Absente'}
+        </span>
+        <div class="act-btn" onclick="togglePresence('${g.id}', ${g.present})">
+          <span style="font-size:13px;color:var(--tl);">✏</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+window.togglePresence = (id, present) => {
+  showToast(present ? '⚠ Gouvernante marquée absente' : '✓ Gouvernante marquée présente');
+};
+
 
 // ── Bouton soumettre ──────────────────────────────────────────────────────────
 function updateSubmit() {
