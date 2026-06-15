@@ -303,6 +303,7 @@ function statutBadge(s) {
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 window.changerStatut = async (id, statut) => {
+  console.log('ID chambre:', id, 'Statut:', statut);
   await updateChambre(profil.hotel_id, id, { statut });
   const msgs = { en_cours:'🧹 C\'est parti !', prete:'✓ Chambre marquée prête !' };
   showToast(msgs[statut] || 'Mise à jour effectuée');
