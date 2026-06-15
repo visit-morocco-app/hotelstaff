@@ -2,54 +2,424 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HotelStaff — Directeur</title>
 <link rel="stylesheet" href="style.css">
+<style>
+:root {
+  --anthracite:#2C2C2C; --anthracite-mid:#3D3D3D;
+  --gold:#C4853A; --gold-light:#F5EDD9; --gold-dark:#8B5E14;
+  --gd:#1B3A2D; --gm:#2D5A40;
+  --cream:#FDFCFA; --cb:#EDE8DC;
+  --tm:#5C5347; --tl:#9C9080;
+  --red:#C0504D; --orange:#E08B14; --green:#2D6A3F;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#F2F2F0; color:#1A1714; min-height:100vh; }
+
+/* Header */
+.header { background:var(--anthracite); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+.hotel-name { font-size:16px; font-weight:600; color:#FAF8F3; }
+.hotel-sub  { font-size:11px; color:var(--gold); margin-top:1px; }
+.header-right { display:flex; align-items:center; gap:14px; }
+.user-info { text-align:right; }
+.user-name { font-size:13px; color:#FAF8F3; font-weight:500; }
+.user-role { font-size:11px; color:var(--gold); }
+.avatar { width:38px; height:38px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:var(--anthracite); cursor:pointer; flex-shrink:0; }
+
+/* Date bar */
+.date-bar { background:#fff; padding:10px 24px; border-bottom:0.5px solid var(--cb); display:flex; align-items:center; justify-content:space-between; }
+.date-txt { font-size:13px; color:var(--tm); font-weight:500; }
+.shift-badges { display:flex; gap:8px; }
+.shift-badge { font-size:11px; padding:4px 12px; border-radius:20px; font-weight:500; }
+.sb-matin { background:#EEF4EA; color:#2D5C38; }
+.sb-soir  { background:#F0EAF5; color:#5C2D7A; }
+
+/* Dashboard grid */
+.dashboard { padding:20px 24px; display:flex; flex-direction:column; gap:20px; max-width:1200px; margin:0 auto; }
+
+/* KPI Cards */
+.kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; }
+.kpi-card { background:#fff; border-radius:12px; border:0.5px solid var(--cb); padding:18px 20px; position:relative; overflow:hidden; }
+.kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+.kpi-card.kpi-green::before { background:var(--green); }
+.kpi-card.kpi-gold::before  { background:var(--gold); }
+.kpi-card.kpi-red::before   { background:var(--red); }
+.kpi-card.kpi-blue::before  { background:#2C3E6B; }
+.kpi-card.kpi-orange::before{ background:var(--orange); }
+.kpi-num   { font-size:36px; font-weight:700; line-height:1; margin-bottom:4px; }
+.kpi-label { font-size:12px; color:var(--tl); }
+.kpi-trend { font-size:11px; margin-top:6px; font-weight:500; }
+.trend-up   { color:var(--green); }
+.trend-down { color:var(--red); }
+.trend-flat { color:var(--tl); }
+
+/* Section title */
+.section-title { font-size:13px; font-weight:600; color:var(--tm); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px; }
+
+/* Deux colonnes */
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+@media(max-width:700px) { .two-col { grid-template-columns:1fr; } }
+
+/* Card générique */
+.card { background:#fff; border-radius:12px; border:0.5px solid var(--cb); padding:18px 20px; }
+.card-title { font-size:14px; font-weight:600; color:#1A1714; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
+
+/* Chambres par statut */
+.statut-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:0.5px solid var(--cb); }
+.statut-row:last-child { border-bottom:none; }
+.statut-dot  { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.statut-name { flex:1; font-size:13px; color:#1A1714; }
+.statut-num  { font-size:16px; font-weight:700; }
+.statut-bar-wrap { width:80px; height:5px; background:var(--cb); border-radius:3px; overflow:hidden; }
+.statut-bar-fill { height:100%; border-radius:3px; }
+
+/* Staff performance */
+.staff-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:0.5px solid var(--cb); }
+.staff-row:last-child { border-bottom:none; }
+.staff-avatar { width:32px; height:32px; border-radius:50%; background:var(--gold-light); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:var(--gold-dark); flex-shrink:0; }
+.staff-name  { flex:1; font-size:13px; font-weight:500; color:#1A1714; }
+.staff-count { font-size:13px; color:var(--tl); }
+.staff-pct   { font-size:12px; font-weight:600; }
+
+/* Incidents résumé */
+.inc-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:0.5px solid var(--cb); }
+.inc-row:last-child { border-bottom:none; }
+.inc-chambre { font-size:14px; font-weight:600; color:#1A1714; width:36px; flex-shrink:0; }
+.inc-desc { flex:1; font-size:12px; color:var(--tm); }
+.inc-badge { font-size:10px; padding:3px 8px; border-radius:20px; white-space:nowrap; font-weight:500; }
+.ib-ouvert  { background:#FAEAEA; color:var(--red); }
+.ib-cours   { background:#FDF3E3; color:var(--orange); }
+.ib-resolu  { background:#EAF3E8; color:var(--green); }
+
+/* Rapport PDF btn */
+.btn-rapport { display:flex; align-items:center; gap:8px; padding:11px 18px; background:var(--anthracite); color:#FAF8F3; border:none; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; transition:background 0.15s; }
+.btn-rapport:hover { background:var(--anthracite-mid); }
+
+/* Taux occupation visuel */
+.occupation-ring { display:flex; align-items:center; justify-content:center; flex-direction:column; padding:16px 0; }
+.ring-num   { font-size:48px; font-weight:700; color:var(--anthracite); line-height:1; }
+.ring-label { font-size:13px; color:var(--tl); margin-top:4px; }
+.ring-sub   { font-size:12px; color:var(--green); font-weight:500; margin-top:2px; }
+
+/* Guard */
+.guard { position:fixed; inset:0; background:#fff; display:none; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center; z-index:300; }
+.guard.show { display:flex; }
+
+/* Toast */
+.toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); background:#1A1714; color:#fff; padding:10px 22px; border-radius:20px; font-size:13px; font-weight:500; z-index:500; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.toast.show { opacity:1; }
+</style>
 </head>
 <body>
 
-<!-- Guard screen (accès refusé) -->
-<div class="hs-guard" id="guard-screen">
-  <div class="hs-guard-icon">🔒</div>
-  <div class="hs-guard-title">Accès refusé</div>
-  <div class="hs-guard-sub">Vous n'avez pas les droits pour accéder à cet espace.</div>
-  <button class="hs-btn hs-btn-secondary" style="margin-top:20px" onclick="window.location.href='login.html'">Retour connexion</button>
+<div class="guard" id="guard-screen">
+  <div style="font-size:40px;margin-bottom:16px;">🔒</div>
+  <div style="font-size:18px;font-weight:600;margin-bottom:8px;">Accès refusé</div>
+  <div style="font-size:14px;color:var(--tl);margin-bottom:20px;">Espace réservé à la direction.</div>
+  <button style="padding:10px 20px;border-radius:8px;border:0.5px solid var(--cb);background:#fff;cursor:pointer;" onclick="window.location.href='login.html'">Retour connexion</button>
 </div>
 
-<!-- App -->
 <div id="app" style="display:none">
-  <header class="hs-header">
-    <div class="hs-header-left">
-      <div class="hs-logo" style="background:var(--purple)">
-        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      </div>
-      <div>
-        <div class="hs-hotel-name" id="hotel-name">Hôtel</div>
-      </div>
-    </div>
-    <div class="hs-header-right">
-      <span class="hs-badge hs-badge-directeur" id="role-badge">Directeur</span>
-      <button class="hs-btn hs-btn-ghost" id="btn-logout">Déconnexion</button>
-    </div>
-  </header>
 
-  <!-- Contenu à développer semaine 2 -->
-  <div style="padding:32px 16px;text-align:center;color:var(--muted)">
-    <div style="font-size:40px;margin-bottom:12px">🏨</div>
-    <p style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">Espace Directeur</p>
-    <p style="font-size:13px">Connecté en tant que : <strong id="user-nom"></strong></p>
-    <p style="font-size:12px;margin-top:8px">Modules en cours de développement…</p>
+  <div class="header">
+    <div>
+      <div class="hotel-name" id="hotel-name">Hôtel</div>
+      <div class="hotel-sub">Tableau de bord direction</div>
+    </div>
+    <div class="header-right">
+      <div class="user-info">
+        <div class="user-name" id="user-nom">—</div>
+        <div class="user-role">Directeur</div>
+      </div>
+      <div class="avatar" id="avatar" onclick="doLogout()">D</div>
+    </div>
+  </div>
+
+  <div class="date-bar">
+    <span class="date-txt" id="date-display">—</span>
+    <div class="shift-badges">
+      <span class="shift-badge sb-matin">☀ Matin en cours</span>
+    </div>
+  </div>
+
+  <div class="dashboard">
+
+    <!-- KPIs -->
+    <div>
+      <div class="section-title">Indicateurs du jour</div>
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-green">
+          <div class="kpi-num" id="kpi-dispo" style="color:var(--green);">—</div>
+          <div class="kpi-label">Chambres disponibles</div>
+          <div class="kpi-trend trend-up" id="kpi-dispo-pct">—</div>
+        </div>
+        <div class="kpi-card kpi-blue">
+          <div class="kpi-num" id="kpi-occ" style="color:#2C3E6B;">—</div>
+          <div class="kpi-label">Chambres occupées</div>
+          <div class="kpi-trend trend-flat" id="kpi-occ-pct">—</div>
+        </div>
+        <div class="kpi-card kpi-orange">
+          <div class="kpi-num" id="kpi-nettoyage" style="color:var(--orange);">—</div>
+          <div class="kpi-label">En nettoyage</div>
+          <div class="kpi-trend trend-flat" id="kpi-nettoyage-pct">—</div>
+        </div>
+        <div class="kpi-card kpi-red">
+          <div class="kpi-num" id="kpi-incidents" style="color:var(--red);">—</div>
+          <div class="kpi-label">Incidents ouverts</div>
+          <div class="kpi-trend" id="kpi-inc-trend">—</div>
+        </div>
+        <div class="kpi-card kpi-gold">
+          <div class="kpi-num" id="kpi-validees" style="color:var(--gold);">—</div>
+          <div class="kpi-label">Chambres validées ★</div>
+          <div class="kpi-trend trend-flat" id="kpi-val-pct">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+
+      <!-- État chambres -->
+      <div class="card">
+        <div class="card-title">
+          <span>État des chambres</span>
+          <span style="font-size:12px;color:var(--tl);" id="total-chambres">— chambres</span>
+        </div>
+        <div id="statuts-list"></div>
+
+        <div class="occupation-ring" style="margin-top:16px;border-top:0.5px solid var(--cb);padding-top:16px;">
+          <div class="ring-num" id="taux-occ">—%</div>
+          <div class="ring-label">Taux d'occupation</div>
+          <div class="ring-sub" id="taux-sub">—</div>
+        </div>
+      </div>
+
+      <!-- Incidents + Staff -->
+      <div style="display:flex;flex-direction:column;gap:14px;">
+
+        <div class="card">
+          <div class="card-title">
+            <span>Incidents du jour</span>
+            <span id="inc-count" style="font-size:12px;color:var(--tl);">—</span>
+          </div>
+          <div id="incidents-list">
+            <div style="font-size:13px;color:var(--tl);text-align:center;padding:16px;">Aucun incident</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Performance staff</span>
+          </div>
+          <div id="staff-list">
+            <div style="font-size:13px;color:var(--tl);text-align:center;padding:16px;">Chargement...</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Rapport -->
+    <div class="card">
+      <div class="card-title">
+        <span>Rapport journalier</span>
+        <button class="btn-rapport" onclick="genererRapport()">📄 Télécharger PDF</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;" id="rapport-grid">
+        <div style="background:#F2F2F0;border-radius:8px;padding:14px;">
+          <div style="font-size:12px;color:var(--tl);margin-bottom:4px;">Shift matin</div>
+          <div style="font-size:13px;color:#1A1714;" id="rapport-matin">En cours...</div>
+        </div>
+        <div style="background:#F2F2F0;border-radius:8px;padding:14px;">
+          <div style="font-size:12px;color:var(--tl);margin-bottom:4px;">Chambres traitées</div>
+          <div style="font-size:13px;color:#1A1714;" id="rapport-traitees">—</div>
+        </div>
+        <div style="background:#F2F2F0;border-radius:8px;padding:14px;">
+          <div style="font-size:12px;color:var(--tl);margin-bottom:4px;">Incidents signalés</div>
+          <div style="font-size:13px;color:#1A1714;" id="rapport-incidents">—</div>
+        </div>
+        <div style="background:#F2F2F0;border-radius:8px;padding:14px;">
+          <div style="font-size:12px;color:var(--tl);margin-bottom:4px;">Taux de complétion</div>
+          <div style="font-size:13px;color:#1A1714;" id="rapport-taux">—</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
-<div class="hs-toast" id="hs-toast"></div>
+<div class="toast" id="toast"></div>
 
 <script type="module">
-import { initPage, setupLogout } from './auth.js';
+import { onAuth, getUserProfile, logout,
+         watchChambres, watchIncidents, watchStaff } from './firebase.js';
 
-const profil = await initPage('directeur');
-document.getElementById('app').style.display = 'block';
-setupLogout();
+let profil = null;
+let chambresData = {};
+let incidentsData = {};
+let staffData = {};
+
+onAuth(async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  profil = await getUserProfile(user.uid);
+  if (!profil || profil.role !== 'directeur') {
+    document.getElementById('guard-screen').classList.add('show'); return;
+  }
+  initApp();
+});
+
+function initApp() {
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('hotel-name').textContent = profil.hotel_nom || 'Hôtel';
+  document.getElementById('user-nom').textContent   = profil.nom || '';
+  const init = (profil.nom||'D').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('avatar').textContent = init;
+  const d = new Date();
+  const opts = { weekday:'long', day:'numeric', month:'long', year:'numeric' };
+  const str = d.toLocaleDateString('fr-FR', opts);
+  document.getElementById('date-display').textContent = str.charAt(0).toUpperCase() + str.slice(1);
+
+  watchChambres(profil.hotel_id,  data => { chambresData  = data || {}; updateAll(); });
+  watchIncidents(profil.hotel_id, data => { incidentsData = data || {}; updateAll(); });
+  watchStaff(profil.hotel_id,     data => { staffData     = data || {}; updateAll(); });
+}
+
+function updateAll() {
+  updateKPIs();
+  updateStatuts();
+  updateIncidents();
+  updateStaff();
+  updateRapport();
+}
+
+function updateKPIs() {
+  const ch = Object.values(chambresData);
+  const total     = ch.length;
+  const dispo     = ch.filter(c => c.statut === 'validee').length;
+  const occupees  = ch.filter(c => c.statut === 'occupee').length;
+  const nettoyage = ch.filter(c => ['sale','en_cours','prete'].includes(c.statut)).length;
+  const validees  = ch.filter(c => c.statut === 'validee').length;
+  const incidents = Object.values(incidentsData).filter(i => i.statut === 'ouvert').length;
+  const tauxOcc   = total ? Math.round(occupees / total * 100) : 0;
+
+  document.getElementById('kpi-dispo').textContent       = dispo;
+  document.getElementById('kpi-dispo-pct').textContent   = `${Math.round(dispo/total*100)||0}% du parc`;
+  document.getElementById('kpi-occ').textContent         = occupees;
+  document.getElementById('kpi-occ-pct').textContent     = `${tauxOcc}% d'occupation`;
+  document.getElementById('kpi-nettoyage').textContent   = nettoyage;
+  document.getElementById('kpi-nettoyage-pct').textContent = `${Math.round(nettoyage/total*100)||0}% du parc`;
+  document.getElementById('kpi-incidents').textContent   = incidents;
+  document.getElementById('kpi-inc-trend').textContent   = incidents > 0 ? '⚠ À traiter' : '✓ Tout résolu';
+  document.getElementById('kpi-inc-trend').className     = incidents > 0 ? 'kpi-trend trend-down' : 'kpi-trend trend-up';
+  document.getElementById('kpi-validees').textContent    = validees;
+  document.getElementById('kpi-val-pct').textContent     = `${Math.round(validees/total*100)||0}% prêtes`;
+  document.getElementById('taux-occ').textContent        = tauxOcc + '%';
+  document.getElementById('taux-sub').textContent        = `${occupees} occupées sur ${total} chambres`;
+}
+
+function updateStatuts() {
+  const ch = Object.values(chambresData);
+  const total = ch.length;
+  document.getElementById('total-chambres').textContent = `${total} chambres`;
+
+  const statuts = [
+    { key:'validee',  label:'Disponibles ★', color:'#C4853A' },
+    { key:'occupee',  label:'Occupées',      color:'#2C3E6B' },
+    { key:'sale',     label:'Sales',         color:'#C0504D' },
+    { key:'en_cours', label:'En cours',      color:'#E08B14' },
+    { key:'prete',    label:'Prêtes',        color:'#2D6A3F' },
+  ];
+
+  document.getElementById('statuts-list').innerHTML = statuts.map(s => {
+    const count = ch.filter(c => c.statut === s.key).length;
+    const pct   = total ? Math.round(count / total * 100) : 0;
+    return `
+      <div class="statut-row">
+        <div class="statut-dot" style="background:${s.color};"></div>
+        <div class="statut-name">${s.label}</div>
+        <div class="statut-bar-wrap">
+          <div class="statut-bar-fill" style="width:${pct}%;background:${s.color};"></div>
+        </div>
+        <div class="statut-num" style="color:${s.color};">${count}</div>
+      </div>`;
+  }).join('');
+}
+
+function updateIncidents() {
+  const incs = Object.entries(incidentsData)
+    .map(([k,v]) => ({id:k,...v}))
+    .sort((a,b) => (b.created_at||0) - (a.created_at||0))
+    .slice(0, 5);
+
+  document.getElementById('inc-count').textContent = `${Object.keys(incidentsData).length} au total`;
+
+  if(!incs.length) {
+    document.getElementById('incidents-list').innerHTML =
+      '<div style="font-size:13px;color:var(--tl);text-align:center;padding:16px;">✅ Aucun incident</div>';
+    return;
+  }
+
+  document.getElementById('incidents-list').innerHTML = incs.map(i => `
+    <div class="inc-row">
+      <div class="inc-chambre">${i.chambre}</div>
+      <div class="inc-desc">${i.description}</div>
+      <span class="inc-badge ${i.statut === 'ouvert' ? 'ib-ouvert' : i.statut === 'en_cours' ? 'ib-cours' : 'ib-resolu'}">
+        ${i.statut === 'ouvert' ? 'Ouvert' : i.statut === 'en_cours' ? 'En cours' : 'Résolu'}
+      </span>
+    </div>`).join('');
+}
+
+function updateStaff() {
+  const staffVals = Object.values(staffData).filter(s => s.role === 'staff');
+  const ch = Object.values(chambresData);
+
+  if(!staffVals.length) {
+    document.getElementById('staff-list').innerHTML =
+      '<div style="font-size:13px;color:var(--tl);text-align:center;padding:8px;">Aucun staff configuré</div>';
+    return;
+  }
+
+  const staffPerf = staffVals.map(s => {
+    const mesCh   = ch.filter(c => c.assignee_nom === s.nom);
+    const pretes  = mesCh.filter(c => c.statut === 'prete' || c.statut === 'validee').length;
+    const pct     = mesCh.length ? Math.round(pretes / mesCh.length * 100) : 0;
+    return { ...s, total: mesCh.length, pretes, pct };
+  }).sort((a,b) => b.pct - a.pct);
+
+  document.getElementById('staff-list').innerHTML = staffPerf.map(s => `
+    <div class="staff-row">
+      <div class="staff-avatar">${s.nom.charAt(0)}</div>
+      <div class="staff-name">${s.nom}</div>
+      <div class="staff-count">${s.pretes}/${s.total} ch.</div>
+      <div class="staff-pct" style="color:${s.pct===100?'var(--green)':s.pct>50?'var(--orange)':'var(--red)'};">${s.pct}%</div>
+    </div>`).join('');
+}
+
+function updateRapport() {
+  const ch     = Object.values(chambresData);
+  const total  = ch.length;
+  const traitees = ch.filter(c => c.statut === 'prete' || c.statut === 'validee').length;
+  const incs   = Object.values(incidentsData).length;
+  const pct    = total ? Math.round(traitees / total * 100) : 0;
+
+  document.getElementById('rapport-matin').textContent   = 'En cours · ' + new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+  document.getElementById('rapport-traitees').textContent = `${traitees} / ${total} chambres`;
+  document.getElementById('rapport-incidents').textContent = `${incs} incident${incs>1?'s':''}`;
+  document.getElementById('rapport-taux').textContent     = `${pct}% complété`;
+}
+
+window.genererRapport = () => {
+  showToast('📄 Rapport en cours de génération...');
+  setTimeout(() => showToast('✅ Rapport téléchargé !'), 1500);
+};
+
+window.doLogout = async () => { await logout(); window.location.href = 'login.html'; };
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
 </script>
 </body>
 </html>
