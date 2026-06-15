@@ -5,51 +5,459 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>HotelStaff — Réception</title>
 <link rel="stylesheet" href="style.css">
+<style>
+:root {
+  --gold:#C9A96E; --gold-light:#F5EDD9; --gold-dark:#8B6914;
+  --gd:#1B3A2D; --gm:#2D5A40;
+  --blue:#2C3E6B; --blue-light:#E8EDF8;
+  --cream:#FAF8F3; --cb:#EDE8DC;
+  --tm:#5C5347; --tl:#9C9080;
+  --s-sale:#C0504D; --s-cours:#E08B14; --s-prete:#2D6A3F;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:var(--cream); color:#1A1714; min-height:100vh; }
+
+/* Header */
+.header { background:var(--blue); padding:14px 16px 12px; position:sticky; top:0; z-index:100; }
+.hotel-name { font-size:15px; font-weight:600; color:#FAF8F3; }
+.hotel-sub  { font-size:11px; color:var(--gold); margin-top:1px; }
+.avatar { width:36px; height:36px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:var(--blue); flex-shrink:0; cursor:pointer; }
+.user-name { font-size:13px; color:#FAF8F3; font-weight:500; }
+.user-role { font-size:11px; color:var(--gold); }
+
+/* Stats bar */
+.stats-bar { background:var(--blue-light); padding:12px 16px; border-bottom:0.5px solid var(--cb); display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.stat-item { background:#fff; border-radius:8px; padding:10px 12px; border:0.5px solid var(--cb); text-align:center; }
+.stat-num { font-size:22px; font-weight:700; line-height:1; }
+.stat-label { font-size:11px; color:var(--tl); margin-top:3px; }
+.stat-dispo .stat-num { color:var(--gd); }
+.stat-occ .stat-num   { color:var(--blue); }
+.stat-sale .stat-num  { color:var(--s-sale); }
+
+/* Tabs */
+.tabs { display:flex; border-bottom:0.5px solid var(--cb); background:#fff; }
+.tab { flex:1; text-align:center; padding:10px 0; font-size:13px; font-weight:500; cursor:pointer; color:var(--tl); border-bottom:2px solid transparent; border-top:none; border-left:none; border-right:none; background:none; transition:all 0.2s; }
+.tab.active { color:var(--blue); border-bottom:2px solid var(--blue); }
+.tab-count { display:inline-block; background:var(--blue-light); color:var(--blue); font-size:10px; padding:1px 6px; border-radius:10px; margin-left:4px; }
+.tab.active .tab-count { background:var(--blue); color:#fff; }
+
+/* Content */
+.content { padding:12px; display:flex; flex-direction:column; gap:8px; padding-bottom:30px; }
+
+/* Carte chambre réception */
+.ch-card { background:#fff; border-radius:12px; border:0.5px solid var(--cb); overflow:hidden; }
+.ch-top { display:flex; align-items:center; padding:14px; gap:12px; }
+.ch-num  { font-size:28px; font-weight:700; color:#1A1714; width:52px; flex-shrink:0; }
+.ch-info { flex:1; }
+.ch-type  { font-size:13px; color:var(--tm); font-weight:500; }
+.ch-etage { font-size:12px; color:var(--tl); margin-top:2px; }
+.ch-statut { flex-shrink:0; }
+.badge { font-size:11px; padding:4px 10px; border-radius:20px; font-weight:500; }
+.b-val  { background:var(--gd); color:var(--gold); }
+.b-occ  { background:var(--blue-light); color:var(--blue); }
+.b-sale { background:#FAEAEA; color:#8B2020; }
+.b-cours{ background:#FDF3E3; color:#8B5E14; }
+.b-prete{ background:#EAF3E8; color:var(--gm); }
+
+/* Actions réception */
+.ch-actions { display:grid; gap:8px; padding:0 14px 14px; }
+.ch-actions.two { grid-template-columns:1fr 1fr; }
+.ch-actions.one { grid-template-columns:1fr; }
+.ch-btn { padding:12px; border-radius:10px; border:none; font-size:13px; font-weight:600; cursor:pointer; text-align:center; transition:all 0.15s; }
+.ch-btn:active { transform:scale(0.97); }
+.btn-checkin  { background:var(--blue); color:#fff; }
+.btn-checkout { background:#FAEAEA; color:#8B2020; }
+.btn-info     { background:var(--blue-light); color:var(--blue); }
+
+/* Ligne simple */
+.ch-row { display:flex; align-items:center; padding:12px 14px; border-bottom:0.5px solid var(--cb); gap:10px; background:#fff; }
+.ch-row:last-child { border-bottom:none; }
+.s-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+.sd-sale  { background:var(--s-sale); }
+.sd-cours { background:var(--s-cours); }
+.sd-prete { background:transparent; border:2.5px solid var(--s-prete); }
+.sd-val   { color:var(--gold); font-size:16px; line-height:1; }
+.sd-occ   { background:var(--blue); }
+
+/* Section title */
+.section-title { font-size:11px; font-weight:600; color:var(--tl); text-transform:uppercase; letter-spacing:0.05em; padding:12px 4px 6px; }
+
+/* Empty */
+.empty { text-align:center; padding:40px 20px; color:var(--tl); }
+.empty-icon  { font-size:36px; margin-bottom:10px; }
+.empty-title { font-size:15px; font-weight:500; color:#1A1714; margin-bottom:4px; }
+.empty-sub   { font-size:13px; }
+
+/* Modal */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal { background:#fff; border-radius:20px 20px 0 0; padding:20px 20px 36px; width:100%; max-width:500px; transform:translateY(24px); transition:transform 0.25s; }
+.modal-overlay.open .modal { transform:translateY(0); }
+.modal-handle { width:36px; height:4px; background:var(--cb); border-radius:2px; margin:0 auto 18px; }
+.modal-title { font-size:17px; font-weight:600; margin-bottom:4px; }
+.modal-sub { font-size:13px; color:var(--tl); margin-bottom:16px; }
+.modal-info { background:var(--blue-light); border-radius:8px; padding:12px 14px; margin-bottom:14px; }
+.modal-info-row { display:flex; justify-content:space-between; font-size:13px; padding:3px 0; }
+.modal-info-label { color:var(--tl); }
+.modal-info-val { font-weight:500; color:#1A1714; }
+.modal-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px; }
+.modal-btn { padding:13px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; border:0.5px solid var(--cb); background:#fff; color:#1A1714; text-align:center; }
+.modal-btn-checkin  { background:var(--blue); color:#fff; border-color:var(--blue); }
+.modal-btn-checkout { background:#FAEAEA; color:#8B2020; border-color:transparent; }
+.modal-btn-cancel   { color:var(--tl); }
+
+/* Guard */
+.guard { position:fixed; inset:0; background:#fff; display:none; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center; z-index:300; }
+.guard.show { display:flex; }
+
+/* Toast */
+.toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); background:#1A1714; color:#fff; padding:10px 22px; border-radius:20px; font-size:13px; font-weight:500; z-index:500; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.toast.show { opacity:1; }
+
+@media(min-width:600px) {
+  .content { max-width:640px; margin:0 auto; }
+}
+</style>
 </head>
 <body>
 
-<!-- Guard screen (accès refusé) -->
-<div class="hs-guard" id="guard-screen">
-  <div class="hs-guard-icon">🔒</div>
-  <div class="hs-guard-title">Accès refusé</div>
-  <div class="hs-guard-sub">Vous n'avez pas les droits pour accéder à cet espace.</div>
-  <button class="hs-btn hs-btn-secondary" style="margin-top:20px" onclick="window.location.href='login.html'">Retour connexion</button>
+<div class="guard" id="guard-screen">
+  <div style="font-size:40px;margin-bottom:16px;">🔒</div>
+  <div style="font-size:18px;font-weight:600;margin-bottom:8px;">Accès refusé</div>
+  <div style="font-size:14px;color:var(--tl);margin-bottom:20px;">Vous n'avez pas les droits pour cet espace.</div>
+  <button class="modal-btn" onclick="window.location.href='login.html'">Retour connexion</button>
 </div>
 
-<!-- App -->
 <div id="app" style="display:none">
-  <header class="hs-header">
-    <div class="hs-header-left">
-      <div class="hs-logo" style="background:#2563EB">
-        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      </div>
-      <div>
-        <div class="hs-hotel-name" id="hotel-name">Hôtel</div>
-      </div>
-    </div>
-    <div class="hs-header-right">
-      <span class="hs-badge hs-badge-reception" id="role-badge">Réception</span>
-      <button class="hs-btn hs-btn-ghost" id="btn-logout">Déconnexion</button>
-    </div>
-  </header>
 
-  <!-- Contenu à développer semaine 2 -->
-  <div style="padding:32px 16px;text-align:center;color:var(--muted)">
-    <div style="font-size:40px;margin-bottom:12px">🏨</div>
-    <p style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">Espace Réception</p>
-    <p style="font-size:13px">Connecté en tant que : <strong id="user-nom"></strong></p>
-    <p style="font-size:12px;margin-top:8px">Modules en cours de développement…</p>
+  <div class="header">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div>
+        <div class="hotel-name" id="hotel-name">Hôtel</div>
+        <div class="hotel-sub">Réception</div>
+      </div>
+      <div class="avatar" id="avatar" onclick="doLogout()">R</div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div class="user-name" id="user-nom">—</div>
+        <div class="user-role">Agent de réception</div>
+      </div>
+      <span style="font-size:12px;color:var(--gold);" id="date-display">—</span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-item stat-dispo">
+      <div class="stat-num" id="count-dispo">—</div>
+      <div class="stat-label">Disponibles</div>
+    </div>
+    <div class="stat-item stat-occ">
+      <div class="stat-num" id="count-occ">—</div>
+      <div class="stat-label">Occupées</div>
+    </div>
+    <div class="stat-item stat-sale">
+      <div class="stat-num" id="count-sale">—</div>
+      <div class="stat-label">En nettoyage</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" id="tab-dispo" onclick="setTab('dispo')">
+      Disponibles <span class="tab-count" id="tc-dispo">0</span>
+    </button>
+    <button class="tab" id="tab-occupees" onclick="setTab('occupees')">
+      Occupées <span class="tab-count" id="tc-occ">0</span>
+    </button>
+    <button class="tab" id="tab-nettoyage" onclick="setTab('nettoyage')">
+      Nettoyage <span class="tab-count" id="tc-nettoyage">0</span>
+    </button>
+    <button class="tab" id="tab-toutes" onclick="setTab('toutes')">
+      Toutes <span class="tab-count" id="tc-toutes">0</span>
+    </button>
+  </div>
+
+  <div class="content" id="content"></div>
+
+</div>
+
+<!-- Modal chambre -->
+<div class="modal-overlay" id="modal-chambre" onclick="closeModal('modal-chambre', event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-title">Chambre 101</div>
+    <div class="modal-sub" id="modal-sub">Double · Étage 1</div>
+    <div class="modal-info" id="modal-info"></div>
+    <div id="modal-actions-container"></div>
+    <button class="modal-btn modal-btn-cancel" style="width:100%;margin-top:8px;" onclick="closeModal('modal-chambre')">Fermer</button>
   </div>
 </div>
 
-<div class="hs-toast" id="hs-toast"></div>
+<div class="toast" id="toast"></div>
 
 <script type="module">
-import { initPage, setupLogout } from './auth.js';
+import { onAuth, getUserProfile, logout,
+         watchChambres, updateChambre } from './firebase.js';
 
-const profil = await initPage('reception');
-document.getElementById('app').style.display = 'block';
-setupLogout();
+let profil = null;
+let chambresData = {};
+let tabActif = 'dispo';
+let chambreSelectee = null;
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+onAuth(async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  profil = await getUserProfile(user.uid);
+  if (!profil || profil.role !== 'reception') {
+    document.getElementById('guard-screen').classList.add('show'); return;
+  }
+  initApp();
+});
+
+function initApp() {
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('hotel-name').textContent = profil.hotel_nom || 'Hôtel';
+  document.getElementById('user-nom').textContent   = profil.nom || '';
+  const init = (profil.nom||'R').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('avatar').textContent = init;
+  const d = new Date();
+  document.getElementById('date-display').textContent =
+    d.toLocaleDateString('fr-FR', { weekday:'short', day:'numeric', month:'short' });
+
+  watchChambres(profil.hotel_id, data => {
+    chambresData = data || {};
+    updateStats();
+    render();
+  });
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+function updateStats() {
+  const vals = Object.values(chambresData);
+  const dispo    = vals.filter(c => c.statut === 'validee').length;
+  const occupees = vals.filter(c => c.statut === 'occupee').length;
+  const nettoyage = vals.filter(c => ['sale','en_cours','prete'].includes(c.statut)).length;
+
+  document.getElementById('count-dispo').textContent = dispo;
+  document.getElementById('count-occ').textContent   = occupees;
+  document.getElementById('count-sale').textContent  = nettoyage;
+  const nettoyage2 = vals.filter(c => ['sale','en_cours','prete'].includes(c.statut)).length;
+  document.getElementById('tc-dispo').textContent     = dispo;
+  document.getElementById('tc-occ').textContent       = occupees;
+  document.getElementById('tc-nettoyage').textContent = nettoyage2;
+  document.getElementById('tc-toutes').textContent    = vals.length;
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+window.setTab = (t) => {
+  tabActif = t;
+  ['dispo','occupees','toutes'].forEach(id => {
+    document.getElementById('tab-'+id)?.classList.toggle('active', id === t);
+    if(id === 'occupees') document.getElementById('tab-occupees')?.classList.toggle('active', t === 'occupees');
+  });
+  document.getElementById('tab-dispo').classList.toggle('active', t === 'dispo');
+  document.getElementById('tab-occupees').classList.toggle('active', t === 'occupees');
+  document.getElementById('tab-nettoyage').classList.toggle('active', t === 'nettoyage');
+  document.getElementById('tab-toutes').classList.toggle('active', t === 'toutes');
+  render();
+};
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render() {
+  const vals = Object.entries(chambresData)
+    .map(([k,v]) => ({id:k,...v}))
+    .sort((a,b) => a.num - b.num);
+
+  const content = document.getElementById('content');
+
+  if(tabActif === 'dispo') {
+    const dispos = vals.filter(c => c.statut === 'validee');
+    if(!dispos.length) {
+      content.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">🛏</div>
+          <div class="empty-title">Aucune chambre disponible</div>
+          <div class="empty-sub">Les chambres sont en cours de nettoyage.</div>
+        </div>`;
+      return;
+    }
+    content.innerHTML = `
+      <div class="section-title">Prêtes pour check-in (${dispos.length})</div>
+      ${dispos.map(c => carteReception(c)).join('')}`;
+
+  } else if(tabActif === 'occupees') {
+    const occupees = vals.filter(c => c.statut === 'occupee');
+    if(!occupees.length) {
+      content.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">🏨</div>
+          <div class="empty-title">Aucune chambre occupée</div>
+          <div class="empty-sub">Toutes les chambres sont libres.</div>
+        </div>`;
+      return;
+    }
+    content.innerHTML = `
+      <div class="section-title">Chambres occupées (${occupees.length})</div>
+      ${occupees.map(c => carteReception(c)).join('')}`;
+
+  } else if(tabActif === 'nettoyage') {
+    const nettoyage = vals.filter(c => ['sale','en_cours','prete'].includes(c.statut));
+    if(!nettoyage.length) {
+      content.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">✨</div>
+          <div class="empty-title">Aucune chambre en nettoyage</div>
+          <div class="empty-sub">Toutes les chambres sont disponibles ou occupées.</div>
+        </div>`;
+      return;
+    }
+    content.innerHTML = `
+      <div class="section-title">En nettoyage (${nettoyage.length})</div>
+      ${nettoyage.map(c => `
+        <div class="ch-card">
+          <div class="ch-top">
+            <div class="ch-num">${c.num}</div>
+            <div class="ch-info">
+              <div class="ch-type">${TYPES[c.type]||c.type}</div>
+              <div class="ch-etage">Étage ${c.etage}</div>
+              ${c.assignee_nom ? `<div style="font-size:11px;color:var(--tl);margin-top:2px;">👤 ${c.assignee_nom}</div>` : ''}
+            </div>
+            <div class="ch-statut">${statutBadge(c.statut)}</div>
+          </div>
+        </div>`).join('')}`;
+
+  } else {
+    // Vue toutes — grille par statut
+    const counts = { validee:0, occupee:0, sale:0, en_cours:0, prete:0 };
+    vals.forEach(c => { if(counts[c.statut] !== undefined) counts[c.statut]++; });
+    const nums = (s) => vals.filter(c=>c.statut===s).map(c=>c.num).join(' - ');
+
+    content.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
+        <div style="background:#fff;border-radius:10px;border:0.5px solid var(--cb);border-left:3px solid var(--gd);padding:12px 14px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+            <div style="font-size:24px;font-weight:700;color:var(--gd);line-height:1;">${counts.validee}</div>
+            <div style="font-size:11px;color:var(--gd);font-weight:500;text-align:right;">${nums('validee')}</div>
+          </div>
+          <div style="font-size:12px;color:var(--tl);margin-top:4px;">Disponibles ★</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;border:0.5px solid var(--cb);border-left:3px solid var(--blue);padding:12px 14px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+            <div style="font-size:24px;font-weight:700;color:var(--blue);line-height:1;">${counts.occupee}</div>
+            <div style="font-size:11px;color:var(--blue);font-weight:500;text-align:right;">${nums('occupee')}</div>
+          </div>
+          <div style="font-size:12px;color:var(--tl);margin-top:4px;">Occupées</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;border:0.5px solid var(--cb);border-left:3px solid var(--s-sale);padding:12px 14px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+            <div style="font-size:24px;font-weight:700;color:var(--s-sale);line-height:1;">${counts.sale}</div>
+            <div style="font-size:11px;color:var(--s-sale);font-weight:500;text-align:right;">${nums('sale')}</div>
+          </div>
+          <div style="font-size:12px;color:var(--tl);margin-top:4px;">Sales</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;border:0.5px solid var(--cb);border-left:3px solid var(--s-cours);padding:12px 14px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+            <div style="font-size:24px;font-weight:700;color:var(--s-cours);line-height:1;">${counts.en_cours + counts.prete}</div>
+            <div style="font-size:11px;color:var(--s-cours);font-weight:500;text-align:right;">${[...nums('en_cours').split(' - '), ...nums('prete').split(' - ')].filter(Boolean).join(' - ')}</div>
+          </div>
+          <div style="font-size:12px;color:var(--tl);margin-top:4px;">En nettoyage</div>
+        </div>
+      </div>`;
+  }
+}
+
+function carteReception(c) {
+  const isVal = c.statut === 'validee';
+  const isOcc = c.statut === 'occupee';
+
+  let actions = '';
+  if(isVal) {
+    actions = `
+      <div class="ch-actions one">
+        <button class="ch-btn btn-checkin" onclick="ouvrirModal('${c.id}')">🔑 Check-in client</button>
+      </div>`;
+  } else if(isOcc) {
+    actions = `
+      <div class="ch-actions two">
+        <button class="ch-btn btn-info"     onclick="ouvrirModal('${c.id}')">👁 Détails</button>
+        <button class="ch-btn btn-checkout" onclick="confirmerCheckout('${c.id}')">🚪 Check-out</button>
+      </div>`;
+  }
+
+  return `
+  <div class="ch-card">
+    <div class="ch-top">
+      <div class="ch-num">${c.num}</div>
+      <div class="ch-info">
+        <div class="ch-type">${TYPES[c.type]||c.type}</div>
+        <div class="ch-etage">Étage ${c.etage}</div>
+      </div>
+      <div class="ch-statut">${statutBadge(c.statut)}</div>
+    </div>
+    ${actions}
+  </div>`;
+}
+
+const TYPES = { simple:'Simple', double:'Double', suite:'Suite' };
+
+function statutBadge(s) {
+  if(s === 'validee') return `<span class="badge b-val">Disponible ★</span>`;
+  if(s === 'occupee') return `<span class="badge b-occ">Occupée</span>`;
+  if(s === 'sale')    return `<span class="badge b-sale">Sale</span>`;
+  if(s === 'en_cours')return `<span class="badge b-cours">En cours</span>`;
+  if(s === 'prete')   return `<span class="badge b-prete">Prête</span>`;
+  return '';
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+window.ouvrirModal = (id) => {
+  chambreSelectee = id;
+  const c = chambresData[id];
+  document.getElementById('modal-title').textContent = `Chambre ${c?.num}`;
+  document.getElementById('modal-sub').textContent   = `${TYPES[c?.type]||''} · Étage ${c?.etage}`;
+  document.getElementById('modal-info').innerHTML = `
+    <div class="modal-info-row"><span class="modal-info-label">Statut</span><span class="modal-info-val">${c?.statut === 'validee' ? '★ Disponible' : 'Occupée'}</span></div>
+    <div class="modal-info-row"><span class="modal-info-label">Type</span><span class="modal-info-val">${TYPES[c?.type]||c?.type}</span></div>
+    <div class="modal-info-row"><span class="modal-info-label">Étage</span><span class="modal-info-val">${c?.etage}</span></div>`;
+
+  const actionsEl = document.getElementById('modal-actions-container');
+  if(c?.statut === 'validee') {
+    actionsEl.innerHTML = `
+      <button class="modal-btn modal-btn-checkin" style="width:100%;margin-bottom:8px;" onclick="confirmerCheckin('${id}')">
+        🔑 Confirmer le check-in
+      </button>`;
+  } else {
+    actionsEl.innerHTML = `
+      <button class="modal-btn modal-btn-checkout" style="width:100%;margin-bottom:8px;" onclick="confirmerCheckout('${id}')">
+        🚪 Confirmer le check-out
+      </button>`;
+  }
+  document.getElementById('modal-chambre').classList.add('open');
+};
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+window.confirmerCheckin = async (id) => {
+  await updateChambre(profil.hotel_id, id, { statut:'occupee' });
+  closeModal('modal-chambre');
+  showToast(`🔑 Check-in confirmé — Chambre ${chambresData[id]?.num}`);
+};
+
+window.confirmerCheckout = async (id) => {
+  await updateChambre(profil.hotel_id, id, { statut:'sale', assignee_id:'', assignee_nom:'' });
+  closeModal('modal-chambre');
+  showToast(`🚪 Check-out — Chambre ${chambresData[id]?.num} en nettoyage`);
+};
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+window.doLogout = async () => { await logout(); window.location.href = 'login.html'; };
+window.closeModal = (id, e) => { if(e && e.target.id !== id) return; document.getElementById(id).classList.remove('open'); };
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
 </script>
 </body>
 </html>
