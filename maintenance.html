@@ -5,51 +5,358 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>HotelStaff — Maintenance</title>
 <link rel="stylesheet" href="style.css">
+<style>
+:root {
+  --gold:#C9A96E; --gold-light:#F5EDD9; --gold-dark:#8B6914;
+  --gd:#1B3A2D;
+  --brown:#3A2415; --brown-light:#F2EBE3;
+  --cream:#FAF8F3; --cb:#EDE8DC;
+  --tm:#5C5347; --tl:#9C9080;
+  --red:#8B2020; --red-light:#FAEAEA;
+  --orange:#8B5E14; --orange-light:#FDF3E3;
+  --green:#2D6A3F; --green-light:#EAF3E8;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#FFFFFF; color:#1A1714; min-height:100vh; }
+
+/* Header */
+.header { background:var(--brown); padding:14px 16px 12px; position:sticky; top:0; z-index:100; }
+.hotel-name { font-size:15px; font-weight:600; color:#FAF8F3; }
+.hotel-sub  { font-size:11px; color:var(--gold); margin-top:1px; }
+.avatar { width:36px; height:36px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:var(--brown); flex-shrink:0; cursor:pointer; }
+.user-name { font-size:13px; color:#FAF8F3; font-weight:500; }
+.user-role { font-size:11px; color:var(--gold); }
+
+/* Stats */
+.stats-bar { background:#F5F0EA; padding:12px 16px; border-bottom:0.5px solid var(--cb); display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.stat-item { background:#fff; border-radius:8px; padding:10px 12px; border:0.5px solid var(--cb); text-align:center; }
+.stat-num { font-size:22px; font-weight:700; line-height:1; }
+.stat-label { font-size:11px; color:var(--tl); margin-top:3px; }
+
+/* Tabs */
+.tabs { display:flex; border-bottom:0.5px solid var(--cb); background:#fff; }
+.tab { flex:1; text-align:center; padding:10px 0; font-size:12px; font-weight:500; cursor:pointer; color:var(--tl); border-bottom:2px solid transparent; border-top:none; border-left:none; border-right:none; background:none; transition:all 0.2s; }
+.tab.active { color:var(--brown); border-bottom:2px solid var(--brown); }
+.tab-count { display:inline-block; background:var(--brown-light); color:var(--brown); font-size:10px; padding:1px 6px; border-radius:10px; margin-left:4px; }
+.tab.active .tab-count { background:var(--brown); color:#fff; }
+
+/* Content */
+.content { padding:12px; display:flex; flex-direction:column; gap:8px; padding-bottom:30px; }
+
+/* Carte incident */
+.inc-card { background:#fff; border-radius:12px; border:0.5px solid var(--cb); overflow:hidden; }
+.inc-top { padding:14px; }
+.inc-header { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:8px; }
+.inc-chambre { font-size:22px; font-weight:700; color:#1A1714; }
+.inc-urgence { font-size:11px; padding:3px 10px; border-radius:20px; font-weight:500; white-space:nowrap; }
+.urg-critique { background:var(--red-light); color:var(--red); }
+.urg-haute    { background:var(--orange-light); color:var(--orange); }
+.urg-normale  { background:var(--brown-light); color:var(--brown); }
+.inc-desc { font-size:14px; color:#1A1714; margin-bottom:6px; line-height:1.4; }
+.inc-meta { font-size:11px; color:var(--tl); display:flex; gap:12px; flex-wrap:wrap; }
+.inc-actions { display:grid; gap:8px; padding:0 14px 14px; }
+.inc-actions.two { grid-template-columns:1fr 1fr; }
+.inc-actions.one { grid-template-columns:1fr; }
+.inc-btn { padding:11px; border-radius:10px; border:none; font-size:13px; font-weight:600; cursor:pointer; text-align:center; transition:all 0.15s; }
+.inc-btn:active { transform:scale(0.97); }
+.btn-prendre  { background:var(--brown); color:#fff; }
+.btn-resoudre { background:var(--green-light); color:var(--green); }
+.btn-detail   { background:var(--brown-light); color:var(--brown); }
+
+/* Section title */
+.section-title { font-size:11px; font-weight:600; color:var(--tl); text-transform:uppercase; letter-spacing:0.05em; padding:12px 4px 6px; }
+
+/* Incident résolu — style atténué */
+.inc-card.resolved { opacity:1; border-left:3px solid #2D6A3F !important; }
+
+/* Empty */
+.empty { text-align:center; padding:40px 20px; color:var(--tl); }
+.empty-icon  { font-size:36px; margin-bottom:10px; }
+.empty-title { font-size:15px; font-weight:500; color:#1A1714; margin-bottom:4px; }
+.empty-sub   { font-size:13px; }
+
+/* Modal */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal { background:#fff; border-radius:20px 20px 0 0; padding:20px 20px 36px; width:100%; max-width:500px; transform:translateY(24px); transition:transform 0.25s; }
+.modal-overlay.open .modal { transform:translateY(0); }
+.modal-handle { width:36px; height:4px; background:var(--cb); border-radius:2px; margin:0 auto 18px; }
+.modal-title { font-size:17px; font-weight:600; margin-bottom:4px; }
+.modal-sub { font-size:13px; color:var(--tl); margin-bottom:14px; }
+.modal-info { background:var(--brown-light); border-radius:8px; padding:12px 14px; margin-bottom:14px; }
+.modal-info-row { display:flex; justify-content:space-between; font-size:13px; padding:4px 0; border-bottom:0.5px solid var(--cb); }
+.modal-info-row:last-child { border-bottom:none; }
+.modal-info-label { color:var(--tl); }
+.modal-info-val { font-weight:500; color:#1A1714; }
+.modal-label { font-size:12px; color:var(--tl); margin-bottom:6px; font-weight:500; }
+.modal-input { width:100%; padding:11px 13px; border:0.5px solid var(--cb); border-radius:8px; font-size:14px; background:var(--cream); outline:none; resize:none; font-family:inherit; }
+.modal-input:focus { border-color:var(--brown); }
+.modal-btn { padding:13px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; border:0.5px solid var(--cb); background:#fff; color:#1A1714; text-align:center; width:100%; margin-bottom:8px; }
+.modal-btn-resoudre { background:var(--green); color:#fff; border-color:var(--green); }
+.modal-btn-cancel   { color:var(--tl); }
+
+/* Guard */
+.guard { position:fixed; inset:0; background:#fff; display:none; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center; z-index:300; }
+.guard.show { display:flex; }
+
+/* Toast */
+.toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); background:#1A1714; color:#fff; padding:10px 22px; border-radius:20px; font-size:13px; font-weight:500; z-index:500; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.toast.show { opacity:1; }
+
+@media(min-width:600px) {
+  .content { max-width:640px; margin:0 auto; }
+}
+</style>
 </head>
 <body>
 
-<!-- Guard screen (accès refusé) -->
-<div class="hs-guard" id="guard-screen">
-  <div class="hs-guard-icon">🔒</div>
-  <div class="hs-guard-title">Accès refusé</div>
-  <div class="hs-guard-sub">Vous n'avez pas les droits pour accéder à cet espace.</div>
-  <button class="hs-btn hs-btn-secondary" style="margin-top:20px" onclick="window.location.href='login.html'">Retour connexion</button>
+<div class="guard" id="guard-screen">
+  <div style="font-size:40px;margin-bottom:16px;">🔒</div>
+  <div style="font-size:18px;font-weight:600;margin-bottom:8px;">Accès refusé</div>
+  <div style="font-size:14px;color:var(--tl);margin-bottom:20px;">Vous n'avez pas les droits pour cet espace.</div>
+  <button class="modal-btn" onclick="window.location.href='login.html'">Retour connexion</button>
 </div>
 
-<!-- App -->
 <div id="app" style="display:none">
-  <header class="hs-header">
-    <div class="hs-header-left">
-      <div class="hs-logo" style="background:var(--red)">
-        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      </div>
-      <div>
-        <div class="hs-hotel-name" id="hotel-name">Hôtel</div>
-      </div>
-    </div>
-    <div class="hs-header-right">
-      <span class="hs-badge hs-badge-maintenance" id="role-badge">Maintenance</span>
-      <button class="hs-btn hs-btn-ghost" id="btn-logout">Déconnexion</button>
-    </div>
-  </header>
 
-  <!-- Contenu à développer semaine 2 -->
-  <div style="padding:32px 16px;text-align:center;color:var(--muted)">
-    <div style="font-size:40px;margin-bottom:12px">🏨</div>
-    <p style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">Espace Maintenance</p>
-    <p style="font-size:13px">Connecté en tant que : <strong id="user-nom"></strong></p>
-    <p style="font-size:12px;margin-top:8px">Modules en cours de développement…</p>
+  <div class="header">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div>
+        <div class="hotel-name" id="hotel-name">Hôtel</div>
+        <div class="hotel-sub">Maintenance</div>
+      </div>
+      <div class="avatar" id="avatar" onclick="doLogout()">H</div>
+    </div>
+    <div>
+      <div class="user-name" id="user-nom">—</div>
+      <div class="user-role">Technicien maintenance</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-num" style="color:var(--red);" id="count-ouvert">—</div>
+      <div class="stat-label">Ouverts</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" style="color:var(--orange);" id="count-encours">—</div>
+      <div class="stat-label">En cours</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" style="color:var(--green);" id="count-resolu">—</div>
+      <div class="stat-label">Résolus</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" id="tab-ouvert" onclick="setTab('ouvert')">
+      Ouverts <span class="tab-count" id="tc-ouvert">0</span>
+    </button>
+    <button class="tab" id="tab-encours" onclick="setTab('encours')">
+      En cours <span class="tab-count" id="tc-encours">0</span>
+    </button>
+    <button class="tab" id="tab-resolu" onclick="setTab('resolu')">
+      Résolus <span class="tab-count" id="tc-resolu">0</span>
+    </button>
+  </div>
+
+  <div class="content" id="content"></div>
+</div>
+
+<!-- Modal résoudre -->
+<div class="modal-overlay" id="modal-inc" onclick="closeModal('modal-inc', event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-inc-title">Incident</div>
+    <div class="modal-sub" id="modal-inc-sub">—</div>
+    <div class="modal-info" id="modal-inc-info"></div>
+    <div class="modal-label">Note de résolution (optionnel)</div>
+    <textarea class="modal-input" id="resolution-note" rows="2" placeholder="Ex: Robinet remplacé, joint changé…"></textarea>
+    <button class="modal-btn modal-btn-resoudre" style="margin-top:12px;" onclick="confirmerResolution()">✓ Marquer comme résolu</button>
+    <button class="modal-btn modal-btn-cancel" onclick="closeModal('modal-inc')">Annuler</button>
   </div>
 </div>
 
-<div class="hs-toast" id="hs-toast"></div>
+<div class="toast" id="toast"></div>
 
 <script type="module">
-import { initPage, setupLogout } from './auth.js';
+import { onAuth, getUserProfile, logout,
+         watchIncidents, updateIncident } from './firebase.js';
 
-const profil = await initPage('maintenance');
-document.getElementById('app').style.display = 'block';
-setupLogout();
+let profil = null;
+let incidentsData = {};
+let tabActif = 'ouvert';
+let incidentSelectionne = null;
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+onAuth(async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  profil = await getUserProfile(user.uid);
+  if (!profil || profil.role !== 'maintenance') {
+    document.getElementById('guard-screen').classList.add('show'); return;
+  }
+  initApp();
+});
+
+function initApp() {
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('hotel-name').textContent = profil.hotel_nom || 'Hôtel';
+  document.getElementById('user-nom').textContent   = profil.nom || '';
+  const init = (profil.nom||'M').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('avatar').textContent = init;
+
+  watchIncidents(profil.hotel_id, data => {
+    incidentsData = data || {};
+    updateStats();
+    render();
+  });
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+function updateStats() {
+  const vals = Object.values(incidentsData);
+  const ouvert  = vals.filter(i => i.statut === 'ouvert').length;
+  const encours = vals.filter(i => i.statut === 'en_cours').length;
+  const resolu  = vals.filter(i => i.statut === 'resolu').length;
+
+  document.getElementById('count-ouvert').textContent  = ouvert;
+  document.getElementById('count-encours').textContent = encours;
+  document.getElementById('count-resolu').textContent  = resolu;
+  document.getElementById('tc-ouvert').textContent     = ouvert;
+  document.getElementById('tc-encours').textContent    = encours;
+  document.getElementById('tc-resolu').textContent     = resolu;
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+window.setTab = (t) => {
+  tabActif = t;
+  ['ouvert','encours','resolu'].forEach(id => {
+    document.getElementById('tab-'+id).classList.toggle('active', id === t);
+  });
+  render();
+};
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render() {
+  const vals = Object.entries(incidentsData)
+    .map(([k,v]) => ({id:k,...v}))
+    .sort((a,b) => (b.created_at||0) - (a.created_at||0));
+
+  const filtres = {
+    ouvert:  vals.filter(i => i.statut === 'ouvert'),
+    encours: vals.filter(i => i.statut === 'en_cours'),
+    resolu:  vals.filter(i => i.statut === 'resolu'),
+  };
+
+  const liste = filtres[tabActif] || [];
+  const content = document.getElementById('content');
+
+  if(!liste.length) {
+    const msgs = {
+      ouvert:  { icon:'✅', title:'Aucun incident ouvert', sub:'Tout est sous contrôle !' },
+      encours: { icon:'🔧', title:'Aucun incident en cours', sub:'Prenez en charge un incident ouvert.' },
+      resolu:  { icon:'📋', title:'Aucun incident résolu', sub:'Les incidents résolus apparaîtront ici.' },
+    };
+    const m = msgs[tabActif];
+    content.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">${m.icon}</div>
+        <div class="empty-title">${m.title}</div>
+        <div class="empty-sub">${m.sub}</div>
+      </div>`;
+    return;
+  }
+
+  content.innerHTML = liste.map(i => carteIncident(i)).join('');
+}
+
+function carteIncident(i) {
+  const urgClass = { critique:'urg-critique', haute:'urg-haute', normale:'urg-normale' }[i.urgence||'normale'] || 'urg-normale';
+  const urgLabel = { critique:'🔴 Critique', haute:'🟠 Haute', normale:'🟡 Normale' }[i.urgence||'normale'] || 'Normale';
+  const heureSignalement = i.created_at ? new Date(i.created_at).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}) : '—';
+  const dateSignalement  = i.created_at ? new Date(i.created_at).toLocaleDateString('fr-FR', {day:'numeric',month:'short'}) : '—';
+
+  let actions = '';
+  if(i.statut === 'ouvert') {
+    actions = `
+      <div class="inc-actions two">
+        <button class="inc-btn btn-prendre"  onclick="prendreEnCharge('${i.id}')">🔧 Prendre en charge</button>
+        <button class="inc-btn btn-resoudre" onclick="ouvrirResolution('${i.id}')">✓ Résoudre</button>
+      </div>`;
+  } else if(i.statut === 'en_cours') {
+    actions = `
+      <div class="inc-actions one">
+        <button class="inc-btn btn-resoudre" onclick="ouvrirResolution('${i.id}')">✓ Marquer résolu</button>
+      </div>`;
+  }
+
+  return `
+  <div class="inc-card ${i.statut === 'resolu' ? 'resolved' : ''}">
+    <div class="inc-top">
+      <div class="inc-header">
+        <div>
+          <div class="inc-chambre">Chambre ${i.chambre}</div>
+        </div>
+        <span class="inc-urgence ${urgClass}">${urgLabel}</span>
+      </div>
+      <div class="inc-desc">${i.description}</div>
+      <div class="inc-meta">
+        <span>📍 Signalé par ${i.signale_par||'—'}</span>
+        <span>🕐 ${dateSignalement} à ${heureSignalement}</span>
+        ${i.resolu_par ? `<span>👤 Résolu par ${i.resolu_par}</span>` : ''}
+      </div>
+      ${i.resolution ? `<div style="margin-top:8px;font-size:12px;background:#EAF3E8;color:#2D6A3F;padding:6px 10px;border-radius:6px;border-left:3px solid #2D6A3F;">✓ ${i.resolution}</div>` : ''}
+      ${i.statut === 'resolu' ? `<div style="margin-top:6px;font-size:11px;color:#2D6A3F;font-weight:500;">✅ Incident clôturé</div>` : ''}
+    </div>
+    ${actions}
+  </div>`;
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+window.prendreEnCharge = async (id) => {
+  await updateIncident(profil.hotel_id, id, {
+    statut: 'en_cours',
+    pris_en_charge_par: profil.nom,
+    pris_en_charge_at: Date.now()
+  });
+  showToast('🔧 Incident pris en charge');
+};
+
+window.ouvrirResolution = (id) => {
+  incidentSelectionne = id;
+  const i = incidentsData[id];
+  document.getElementById('modal-inc-title').textContent = `Chambre ${i?.chambre}`;
+  document.getElementById('modal-inc-sub').textContent   = i?.description || '';
+  document.getElementById('modal-inc-info').innerHTML = `
+    <div class="modal-info-row"><span class="modal-info-label">Signalé par</span><span class="modal-info-val">${i?.signale_par||'—'}</span></div>
+    <div class="modal-info-row"><span class="modal-info-label">Urgence</span><span class="modal-info-val">${i?.urgence||'normale'}</span></div>
+    <div class="modal-info-row"><span class="modal-info-label">Statut</span><span class="modal-info-val">${i?.statut}</span></div>`;
+  document.getElementById('resolution-note').value = '';
+  document.getElementById('modal-inc').classList.add('open');
+};
+
+window.confirmerResolution = async () => {
+  const note = document.getElementById('resolution-note').value.trim();
+  await updateIncident(profil.hotel_id, incidentSelectionne, {
+    statut: 'resolu',
+    resolution: note || 'Résolu',
+    resolu_par: profil.nom,
+    resolu_at: Date.now()
+  });
+  closeModal('modal-inc');
+  showToast('✅ Incident résolu !');
+};
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+window.doLogout = async () => { await logout(); window.location.href = 'login.html'; };
+window.closeModal = (id, e) => { if(e && e.target.id !== id) return; document.getElementById(id).classList.remove('open'); };
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
 </script>
 </body>
 </html>

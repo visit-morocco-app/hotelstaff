@@ -16,7 +16,7 @@
 }
 
 * { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:var(--cream); color:#1A1714; min-height:100vh; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#FFFFFF; color:#1A1714; min-height:100vh; }
 
 /* ── Header ── */
 .header { background:var(--gd); padding:14px 16px 0; position:sticky; top:0; z-index:100; }
@@ -32,9 +32,9 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 .shift-tab.active { color:var(--gold); border-bottom:2px solid var(--gold); }
 
 /* ── Date bar ── */
-.date-bar { background:var(--gold-light); padding:9px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:0.5px solid var(--cb); }
-.date-txt { font-size:12px; color:var(--gold-dark); font-weight:500; }
-.progress-pill { font-size:11px; color:var(--gm); background:#EAF3E8; padding:3px 10px; border-radius:20px; font-weight:500; }
+.date-bar { background:#EEF4EA; padding:9px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:0.5px solid var(--cb); }
+.date-txt { font-size:12px; color:#3A6347; font-weight:500; }
+.progress-pill { font-size:11px; color:#2D5C38; background:#D4E8C8; padding:3px 10px; border-radius:20px; font-weight:500; }
 
 /* ── Content ── */
 .content { padding:12px; display:flex; flex-direction:column; gap:8px; padding-bottom:100px; }
@@ -42,24 +42,24 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 /* ── Section accordéon ── */
 .section { background:#fff; border-radius:12px; border:0.5px solid var(--cb); overflow:hidden; }
 .section-header { display:flex; align-items:center; justify-content:space-between; padding:13px 14px; cursor:pointer; user-select:none; }
-.section-icon { width:30px; height:30px; border-radius:8px; background:var(--gold-light); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:15px; }
+.section-icon { width:30px; height:30px; border-radius:8px; background:#EEF4EA; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:15px; }
 .section-title { font-size:14px; font-weight:600; color:#1A1714; }
 .section-sub { font-size:11px; color:var(--tl); margin-top:1px; }
 .warn-badge { font-size:11px; background:#FDF3E3; color:#8B5E14; padding:3px 8px; border-radius:20px; white-space:nowrap; }
-.ok-badge   { font-size:11px; background:#EAF3E8; color:var(--gm); padding:3px 8px; border-radius:20px; white-space:nowrap; }
+.ok-badge   { font-size:11px; background:#D4E8C8; color:#2D5C38; padding:3px 8px; border-radius:20px; white-space:nowrap; }
 .chevron { font-size:16px; color:var(--tl); transition:transform 0.2s; }
 .chevron.open { transform:rotate(180deg); }
 .section-body { border-top:0.5px solid var(--cb); display:none; }
 .section-body.open { display:block; }
 
 /* ── Légende ── */
-.legend { display:flex; gap:14px; flex-wrap:wrap; padding:8px 14px; border-bottom:0.5px solid var(--cb); background:var(--cream); }
+.legend { display:flex; gap:14px; flex-wrap:wrap; padding:8px 14px; border-bottom:0.5px solid var(--cb); background:#FFFFFF; }
 .leg-item { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--tl); }
 .leg-dot  { width:11px; height:11px; border-radius:50%; flex-shrink:0; }
 .ld-sale  { background:var(--s-sale); }
 .ld-cours { background:var(--s-cours); }
 .ld-prete { background:transparent; border:2.5px solid var(--s-prete); }
-.ld-val   { color:var(--gold); font-size:14px; line-height:1; }
+.ld-val   { color:#C4853A; font-size:14px; line-height:1; }
 
 /* ── Ligne chambre ── */
 .ch-row { display:flex; align-items:center; padding:11px 14px; border-bottom:0.5px solid var(--cb); gap:10px; }
@@ -74,11 +74,11 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 .sd-sale  { background:var(--s-sale); }
 .sd-cours { background:var(--s-cours); }
 .sd-prete { background:transparent; border:2.5px solid var(--s-prete); }
-.sd-val   { color:var(--gold); font-size:17px; line-height:1; }
+.sd-val   { color:#C4853A; font-size:17px; line-height:1; }
 .sd-occ   { background:#888; }
 
 /* Boutons action */
-.act-btn { width:30px; height:30px; border-radius:8px; border:0.5px solid var(--cb); background:var(--cream); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:background 0.15s; }
+.act-btn { width:30px; height:30px; border-radius:8px; border:0.5px solid var(--cb); background:#FFFFFF; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:background 0.15s; }
 .act-btn:active { background:#EDE8DC; }
 .act-btn-val { width:30px; height:30px; border-radius:8px; border:0.5px solid var(--gd); background:var(--gd); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
 
@@ -100,11 +100,11 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 .modal-label { font-size:12px; color:var(--tl); margin-bottom:6px; font-weight:500; }
 .staff-list { display:flex; flex-direction:column; gap:6px; }
 .staff-item { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:8px; border:0.5px solid var(--cb); cursor:pointer; transition:background 0.15s; }
-.staff-item:active { background:var(--gold-light); }
-.staff-item.selected { border-color:var(--gd); background:var(--gold-light); }
+.staff-item:active { background:#EEF4EA; }
+.staff-item.selected { border-color:var(--gd); background:#EEF4EA; }
 .staff-nom { font-size:13px; color:#1A1714; font-weight:500; }
 .staff-dispo { font-size:11px; color:var(--gm); }
-.obs-input { width:100%; padding:10px 12px; border:0.5px solid var(--cb); border-radius:8px; font-size:14px; background:var(--cream); outline:none; resize:none; font-family:inherit; }
+.obs-input { width:100%; padding:10px 12px; border:0.5px solid var(--cb); border-radius:8px; font-size:14px; background:#FFFFFF; outline:none; resize:none; font-family:inherit; }
 .obs-input:focus { border-color:var(--gd); }
 .modal-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
 .modal-btn { padding:12px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; border:0.5px solid var(--cb); background:#fff; color:#1A1714; text-align:center; }
@@ -112,7 +112,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 .modal-btn-cancel  { color:var(--tl); }
 
 /* ── Bouton soumettre ── */
-.submit-wrap { position:fixed; bottom:0; left:0; right:0; padding:12px 16px 28px; background:var(--cream); border-top:0.5px solid var(--cb); z-index:99; }
+.submit-wrap { position:fixed; bottom:0; left:0; right:0; padding:12px 16px 28px; background:#FFFFFF; border-top:0.5px solid var(--cb); z-index:99; }
 .submit-btn { width:100%; padding:14px; border-radius:12px; border:none; font-size:15px; font-weight:600; letter-spacing:0.02em; background:#C8C0B0; color:#FAF8F3; cursor:not-allowed; transition:all 0.3s; }
 .submit-btn.active { background:var(--gd); color:var(--gold); cursor:pointer; }
 .submit-note { font-size:11px; color:var(--tl); text-align:center; margin-top:6px; }
@@ -414,7 +414,7 @@ function renderZones() {
       <span class="zone-icon">${ZONE_ICONS[z.type]||'📍'}</span>
       <div class="zone-name">${z.nom}</div>
       ${z.statut === 'fait'
-        ? `<span style="color:var(--gold);font-size:16px;">★</span>`
+        ? `<span style="color:#C4853A;font-size:16px;">★</span>`
         : `<div class="s-dot sd-sale"></div>`}
       <div class="act-btn" onclick="ouvrirModalZone('${z.id}')">
         <span style="font-size:13px;color:var(--tl);">✏</span>
@@ -440,7 +440,7 @@ function renderEquipe() {
 
   document.getElementById('equipe-list').innerHTML = equipe.map(g => `
     <div class="ch-row">
-      <div style="width:36px;height:36px;border-radius:50%;background:var(--gold-light);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--gd);flex-shrink:0;">
+      <div style="width:36px;height:36px;border-radius:50%;background:#EEF4EA;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--gd);flex-shrink:0;">
         ${g.nom.split(' ').map(w=>w[0]).join('').slice(0,2)}
       </div>
       <div class="ch-info" style="margin-left:10px;">
