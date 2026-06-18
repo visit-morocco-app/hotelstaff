@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="style.css">
 <style>
 :root {
-  --anthracite:#2C2C2C; --anthracite-mid:#3D3D3D;
+  --anthracite:#3D2C5E; --anthracite-mid:#4E3A75;
   --gold:#C4853A; --gold-light:#F5EDD9; --gold-dark:#8B5E14;
   --gd:#1B3A2D; --gm:#2D5A40;
   --cream:#FDFCFA; --cb:#EDE8DC;
@@ -15,7 +15,7 @@
   --red:#C0504D; --orange:#E08B14; --green:#2D6A3F;
 }
 * { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#F2F2F0; color:#1A1714; min-height:100vh; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#FDFCFA; color:#1A1714; min-height:100vh; }
 
 /* Header */
 .header { background:var(--anthracite); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
@@ -32,7 +32,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 .date-txt { font-size:13px; color:var(--tm); font-weight:500; }
 .shift-badges { display:flex; gap:8px; }
 .shift-badge { font-size:11px; padding:4px 12px; border-radius:20px; font-weight:500; }
-.sb-matin { background:#EEF4EA; color:#2D5C38; }
+.sb-matin { background:#F5EDD9; color:#2D5C38; }
 .sb-soir  { background:#F0EAF5; color:#5C2D7A; }
 
 /* Dashboard grid */
@@ -77,7 +77,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 /* Staff performance */
 .staff-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:0.5px solid var(--cb); }
 .staff-row:last-child { border-bottom:none; }
-.staff-avatar { width:32px; height:32px; border-radius:50%; background:var(--gold-light); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:var(--gold-dark); flex-shrink:0; }
+.staff-avatar { width:32px; height:32px; border-radius:50%; background:#F5EDD9; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:var(--gold-dark); flex-shrink:0; }
 .staff-name  { flex:1; font-size:13px; font-weight:500; color:#1A1714; }
 .staff-count { font-size:13px; color:var(--tl); }
 .staff-pct   { font-size:12px; font-weight:600; }
@@ -132,6 +132,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
         <div class="user-name" id="user-nom">—</div>
         <div class="user-role">Directeur</div>
       </div>
+      <button onclick="window.location.href='parametrage.html'" style="background:rgba(255,255,255,0.15);border:none;color:#FAF8F3;padding:6px 12px;border-radius:8px;font-size:16px;cursor:pointer;">⚙️</button>
       <div class="avatar" id="avatar" onclick="doLogout()">D</div>
     </div>
   </div>

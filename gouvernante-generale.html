@@ -16,10 +16,10 @@
 }
 
 * { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#FFFFFF; color:#1A1714; min-height:100vh; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#FDFCFA; color:#1A1714; min-height:100vh; }
 
 /* ── Header ── */
-.header { background:var(--gd); padding:14px 16px 0; position:sticky; top:0; z-index:100; }
+.header { background:#3D2C5E; padding:14px 16px 0; position:sticky; top:0; z-index:100; }
 .header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
 .hotel-name { font-size:15px; font-weight:600; color:#FAF8F3; }
 .hotel-sub  { font-size:11px; color:var(--gold); margin-top:1px; }
@@ -32,7 +32,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 .shift-tab.active { color:var(--gold); border-bottom:2px solid var(--gold); }
 
 /* ── Date bar ── */
-.date-bar { background:#EEF4EA; padding:9px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:0.5px solid var(--cb); }
+.date-bar { background:#F5EDD9; padding:9px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:0.5px solid var(--cb); }
 .date-txt { font-size:12px; color:#3A6347; font-weight:500; }
 .progress-pill { font-size:11px; color:#2D5C38; background:#D4E8C8; padding:3px 10px; border-radius:20px; font-weight:500; }
 
@@ -42,7 +42,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 /* ── Section accordéon ── */
 .section { background:#fff; border-radius:12px; border:0.5px solid var(--cb); overflow:hidden; }
 .section-header { display:flex; align-items:center; justify-content:space-between; padding:13px 14px; cursor:pointer; user-select:none; }
-.section-icon { width:30px; height:30px; border-radius:8px; background:#EEF4EA; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:15px; }
+.section-icon { width:30px; height:30px; border-radius:8px; background:#F5EDD9; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:15px; }
 .section-title { font-size:14px; font-weight:600; color:#1A1714; }
 .section-sub { font-size:11px; color:var(--tl); margin-top:1px; }
 .warn-badge { font-size:11px; background:#FDF3E3; color:#8B5E14; padding:3px 8px; border-radius:20px; white-space:nowrap; }
@@ -100,8 +100,8 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 .modal-label { font-size:12px; color:var(--tl); margin-bottom:6px; font-weight:500; }
 .staff-list { display:flex; flex-direction:column; gap:6px; }
 .staff-item { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:8px; border:0.5px solid var(--cb); cursor:pointer; transition:background 0.15s; }
-.staff-item:active { background:#EEF4EA; }
-.staff-item.selected { border-color:var(--gd); background:#EEF4EA; }
+.staff-item:active { background:#F5EDD9; }
+.staff-item.selected { border-color:var(--gd); background:#F5EDD9; }
 .staff-nom { font-size:13px; color:#1A1714; font-weight:500; }
 .staff-dispo { font-size:11px; color:var(--gm); }
 .obs-input { width:100%; padding:10px 12px; border:0.5px solid var(--cb); border-radius:8px; font-size:14px; background:#FFFFFF; outline:none; resize:none; font-family:inherit; }
@@ -150,7 +150,10 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
         <div class="hotel-name" id="hotel-name">Hôtel</div>
         <div class="hotel-sub">Tableau de bord</div>
       </div>
-      <div class="avatar" id="avatar-initials" onclick="doLogout()">MF</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button onclick="window.location.href='parametrage.html'" style="background:rgba(255,255,255,0.15);border:none;color:#FAF8F3;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer;">⚙️</button>
+        <div class="avatar" id="avatar-initials" onclick="doLogout()">MF</div>
+      </div>
     </div>
     <div class="user-row">
       <div>
@@ -216,6 +219,26 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
       </div>
       <div class="section-body" id="body-zones">
         <div id="zones-list"></div>
+      </div>
+    </div>
+
+    <!-- Section réapprovisionnement -->
+    <div class="section" id="section-reappro">
+      <div class="section-header" onclick="toggleSection('reappro')">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="section-icon">🧺</div>
+          <div>
+            <div class="section-title">Réapprovisionnement</div>
+            <div class="section-sub" id="sub-reappro">—</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="badge-reappro" class="warn-badge">—</span>
+          <span class="chevron" id="chev-reappro">▾</span>
+        </div>
+      </div>
+      <div class="section-body" id="body-reappro">
+        <div id="reappro-list"></div>
       </div>
     </div>
 
@@ -295,9 +318,11 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 import { onAuth, getUserProfile, logout,
          watchChambres, updateChambre,
          watchZones, updateZone,
-         watchStaff, ouvrirShift, cloturerShift } from './firebase.js';
+         watchStaff, ouvrirShift, cloturerShift,
+         watchReappro, updateReappro } from './firebase.js';
 
 let profil = null;
+let reapproData = {};
 let shiftActif = 'matin';
 let chambresData = {};
 let zonesData = {};
@@ -327,6 +352,7 @@ function initApp() {
   watchChambres(profil.hotel_id, data => { chambresData = data || {}; renderChambres(); updateSubmit(); });
   watchZones(profil.hotel_id,   data => { zonesData   = data || {}; renderZones();   updateSubmit(); });
   watchStaff(profil.hotel_id,   data => { staffData   = data || {}; renderEquipe(); });
+  watchReappro(profil.hotel_id, data => { reapproData = data || {}; renderReappro(); });
 }
 
 // ── Date ──────────────────────────────────────────────────────────────────────
@@ -366,7 +392,7 @@ function renderChambres() {
       <div class="ch-num">${c.num}</div>
       <div class="ch-info">
         <div class="ch-type">${TYPES[c.type]||c.type} · Étage ${c.etage}</div>
-        ${c.observation ? `<div style="font-size:11px;color:var(--gold-dark);margin-top:2px;">📝 ${c.observation}</div>` : ''}
+        ${c.observation ? `<div style="font-size:11px;color:var(--gold-dark);margin-top:2px;white-space:pre-line;line-height:1.5;">📝 ${c.observation}</div>` : ''}
       </div>
       <div class="ch-right">
         ${statutIndicateur(c.statut)}
@@ -424,6 +450,59 @@ function renderZones() {
 
 const ZONE_ICONS = { couloir:'🏢', lingerie:'🧺', sport:'🏋', lobby:'🚪' };
 
+// ── Render réapprovisionnement ────────────────────────────────────────────────
+function renderReappro() {
+  const vals = Object.entries(reapproData)
+    .map(([k,v]) => ({id:k,...v}))
+    .sort((a,b) => (b.created_at||0) - (a.created_at||0));
+
+  const ouverts = vals.filter(r => r.statut === 'ouvert');
+  const traites = vals.filter(r => r.statut === 'traite');
+
+  document.getElementById('sub-reappro').textContent = `${ouverts.length} en attente`;
+  const badge = document.getElementById('badge-reappro');
+  if(ouverts.length === 0) { badge.textContent = 'Tout traité ✓'; badge.className = 'ok-badge'; }
+  else { badge.textContent = `${ouverts.length} à traiter`; badge.className = 'warn-badge'; }
+
+  if(!vals.length) {
+    document.getElementById('reappro-list').innerHTML =
+      `<div style="padding:16px;text-align:center;font-size:13px;color:var(--tl);">Aucune demande</div>`;
+    return;
+  }
+
+  document.getElementById('reappro-list').innerHTML = `
+    ${ouverts.map(r => `
+      <div class="ch-row">
+        <div class="ch-num">${r.chambre}</div>
+        <div class="ch-info">
+          <div class="ch-type">${r.description}</div>
+          <div style="font-size:11px;color:var(--tl);margin-top:2px;">Demandé par ${r.demande_par||'—'}</div>
+        </div>
+        <div class="ch-right">
+          <div class="act-btn-val" onclick="traiterReappro('${r.id}')" title="Marquer traité">
+            <span style="color:var(--gold);font-size:14px;">✓</span>
+          </div>
+        </div>
+      </div>`).join('')}
+    ${traites.length ? `
+      <div style="padding:8px 14px;font-size:11px;color:var(--tl);font-weight:500;text-transform:uppercase;letter-spacing:0.05em;">
+        Traités (${traites.length})
+      </div>
+      ${traites.slice(0,5).map(r => `
+        <div class="ch-row" style="opacity:0.5;">
+          <div class="ch-num">${r.chambre}</div>
+          <div class="ch-info">
+            <div class="ch-type">${r.description}</div>
+          </div>
+          <span style="color:var(--gold);font-size:14px;">✓</span>
+        </div>`).join('')}` : ''}`;
+}
+
+window.traiterReappro = async (id) => {
+  await updateReappro(profil.hotel_id, id, { statut: 'traite', traite_par: profil.nom });
+  showToast(`✓ Demande traitée — Chambre ${reapproData[id]?.chambre}`);
+};
+
 // ── Render équipe étages ──────────────────────────────────────────────────────
 function renderEquipe() {
   const equipe = [
@@ -440,7 +519,7 @@ function renderEquipe() {
 
   document.getElementById('equipe-list').innerHTML = equipe.map(g => `
     <div class="ch-row">
-      <div style="width:36px;height:36px;border-radius:50%;background:#EEF4EA;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--gd);flex-shrink:0;">
+      <div style="width:36px;height:36px;border-radius:50%;background:#F5EDD9;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--gd);flex-shrink:0;">
         ${g.nom.split(' ').map(w=>w[0]).join('').slice(0,2)}
       </div>
       <div class="ch-info" style="margin-left:10px;">

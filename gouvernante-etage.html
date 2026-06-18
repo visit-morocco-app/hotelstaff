@@ -14,7 +14,7 @@
   --s-sale:#C0504D; --s-cours:#E08B14; --s-prete:#2D6A3F;
 }
 * { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#FFFFFF; color:#1A1714; min-height:100vh; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#FDFCFA; color:#1A1714; min-height:100vh; }
 
 /* Header */
 .header { background:var(--gm); padding:14px 16px 12px; position:sticky; top:0; z-index:100; }
@@ -26,7 +26,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 .user-role { font-size:11px; color:var(--gold); }
 
 /* Barre progression */
-.progress-wrap { background:#EEF4EA; padding:10px 16px; border-bottom:0.5px solid var(--cb); }
+.progress-wrap { background:#F5EDD9; padding:10px 16px; border-bottom:0.5px solid var(--cb); }
 .progress-top { display:flex; justify-content:space-between; margin-bottom:6px; }
 .progress-label { font-size:12px; color:#3A6347; font-weight:500; }
 .progress-pct { font-size:12px; color:var(--gm); font-weight:600; }
@@ -38,7 +38,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 .tabs { display:flex; border-bottom:0.5px solid var(--cb); background:#fff; }
 .tab { flex:1; text-align:center; padding:10px 0; font-size:13px; font-weight:500; cursor:pointer; color:var(--tl); border-bottom:2px solid transparent; transition:all 0.2s; border-top:none; border-left:none; border-right:none; background:none; }
 .tab.active { color:var(--gd); border-bottom:2px solid var(--gd); }
-.tab-count { display:inline-block; background:#EEF4EA; color:var(--gold-dark); font-size:10px; padding:1px 6px; border-radius:10px; margin-left:4px; }
+.tab-count { display:inline-block; background:#F5EDD9; color:var(--gold-dark); font-size:10px; padding:1px 6px; border-radius:10px; margin-left:4px; }
 .tab.active .tab-count { background:var(--gd); color:var(--gold); }
 
 /* Content */
@@ -66,7 +66,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 .ctrl-btn:active { transform:scale(0.97); }
 .ctrl-btn-val  { background:var(--gd); color:var(--gold); border-color:var(--gd); }
 .ctrl-btn-ref  { background:#FAEAEA; color:#8B2020; border-color:transparent; }
-.ctrl-btn-inc  { background:#EEF4EA; color:var(--gold-dark); border-color:transparent; }
+.ctrl-btn-inc  { background:#F5EDD9; color:var(--gold-dark); border-color:transparent; }
 
 /* Ligne simple pour autres chambres */
 .ch-row { display:flex; align-items:center; padding:12px 14px; border-bottom:0.5px solid var(--cb); gap:10px; background:#fff; }
@@ -195,7 +195,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
     <textarea class="modal-input" id="inc-desc" rows="3" placeholder="Ex: Robinet qui fuit, climatisation en panne…"></textarea>
     <div class="modal-label">Urgence</div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
-      <div class="ctrl-btn" id="urg-normale" onclick="setUrgence('normale')" style="background:#EEF4EA;color:var(--gold-dark);">Normale</div>
+      <div class="ctrl-btn" id="urg-normale" onclick="setUrgence('normale')" style="background:#F5EDD9;color:var(--gold-dark);">Normale</div>
       <div class="ctrl-btn" id="urg-haute" onclick="setUrgence('haute')">Haute</div>
       <div class="ctrl-btn" id="urg-critique" onclick="setUrgence('critique')">Critique</div>
     </div>
@@ -251,10 +251,10 @@ window.setTab = (t) => {
 
 // ── Render ────────────────────────────────────────────────────────────────────
 function render() {
-  const monEtage = profil.etage;
+  const monEtage = parseInt(profil.etage);
   const mesCh = Object.entries(chambresData)
     .map(([k,v]) => ({id:k,...v}))
-    .filter(c => c.etage === monEtage)
+    .filter(c => parseInt(c.etage) === monEtage)
     .sort((a,b) => a.num - b.num);
 
   const total   = mesCh.length;
@@ -351,7 +351,7 @@ function carteControle(c) {
       <div class="ctrl-info">
         <div class="ctrl-type">${TYPES[c.type]||c.type} · Étage ${c.etage}</div>
         ${c.assignee_nom ? `<div class="ctrl-staff">Nettoyée par ${c.assignee_nom}</div>` : ''}
-        ${c.observation  ? `<div class="ctrl-obs">📝 ${c.observation}</div>` : ''}
+        ${c.observation  ? `<div class="ctrl-obs" style="white-space:pre-line;line-height:1.5;">📝 ${c.observation}</div>` : ''}
       </div>
       <div class="ctrl-statut"><span class="badge b-prete">Prête ↓</span></div>
     </div>
@@ -401,8 +401,13 @@ window.ouvrirRefus = (id) => {
 window.confirmerRefus = async () => {
   const note = document.getElementById('refus-note').value.trim();
   if(!note) { showToast('⚠ Veuillez indiquer le motif'); return; }
+  const c = chambresData[chambreSelectee];
+  const ancienneObs = c?.observation || '';
+  const heure = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+  const nouvelleLigne = `[${heure}] Refus: ${note}`;
+  const observationComplete = ancienneObs ? `${ancienneObs}\n${nouvelleLigne}` : nouvelleLigne;
   await updateChambre(profil.hotel_id, chambreSelectee, {
-    statut: 'en_cours', observation: `Refus: ${note}`
+    statut: 'en_cours', observation: observationComplete
   });
   closeModal('modal-refus');
   showToast(`✗ Chambre ${chambresData[chambreSelectee]?.num} renvoyée au staff`);

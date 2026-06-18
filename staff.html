@@ -15,7 +15,7 @@
   --amber:#BA7517; --amber-light:#FAEEDA;
 }
 * { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#F4F4F2; color:#1A1714; min-height:100vh; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#FDFCFA; color:#1A1714; min-height:100vh; }
 
 /* Header */
 .header { background:#5C2238; padding:14px 16px 12px; position:sticky; top:0; z-index:100; }
@@ -26,7 +26,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 .user-role { font-size:11px; color:var(--gold); }
 
 /* Progression */
-.progress-wrap { background:#F0E8EC; padding:12px 16px; border-bottom:0.5px solid var(--cb); }
+.progress-wrap { background:#F5EDD9; padding:12px 16px; border-bottom:0.5px solid var(--cb); }
 .progress-top { display:flex; justify-content:space-between; margin-bottom:8px; }
 .progress-label { font-size:13px; color:#5C2238; font-weight:600; }
 .progress-pct { font-size:13px; color:#5C2238; font-weight:700; }
@@ -144,13 +144,28 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 <div class="modal-overlay" id="modal-prob" onclick="closeModal('modal-prob', event)">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title" id="modal-prob-title">Signaler un problème</div>
-    <div class="modal-sub">Votre gouvernante sera informée immédiatement.</div>
-    <div class="modal-label">Description du problème</div>
-    <textarea class="modal-input" id="prob-desc" rows="3" placeholder="Ex: Robinet qui fuit, ampoule cassée, serviettes manquantes…"></textarea>
+    <div class="modal-title" id="modal-prob-title">Signaler</div>
+    <div class="modal-sub">Quel type de signalement ?</div>
+
+    <!-- Choix du type -->
+    <div id="prob-type-choice" style="display:flex;gap:10px;margin-bottom:16px;">
+      <button class="ch-btn" id="btn-type-technique" onclick="choisirTypeProbleme('technique')"
+        style="flex:1;background:var(--red-light);color:#8B2020;border:2px solid transparent;">
+        🔧 Problème technique
+      </button>
+      <button class="ch-btn" id="btn-type-reappro" onclick="choisirTypeProbleme('reappro')"
+        style="flex:1;background:var(--amber-light);color:var(--amber);border:2px solid transparent;">
+        🧺 Réapprovisionnement
+      </button>
+    </div>
+
+    <div id="prob-type-hint" style="font-size:11px;color:var(--tl);margin-bottom:10px;display:none;"></div>
+
+    <div class="modal-label">Description</div>
+    <textarea class="modal-input" id="prob-desc" rows="3" placeholder="Décrivez le problème ou le besoin…"></textarea>
     <div class="modal-actions">
       <button class="modal-btn modal-btn-cancel" onclick="closeModal('modal-prob')">Annuler</button>
-      <button class="modal-btn modal-btn-primary" onclick="confirmerProbleme()">Signaler</button>
+      <button class="modal-btn modal-btn-primary" id="btn-confirmer-prob" onclick="confirmerProbleme()" disabled style="opacity:0.4;">Signaler</button>
     </div>
   </div>
 </div>
@@ -159,11 +174,12 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 
 <script type="module">
 import { onAuth, getUserProfile, logout,
-         watchChambres, updateChambre, signalerIncident } from './firebase.js';
+         watchChambres, updateChambre, signalerIncident, demanderReappro } from './firebase.js';
 
 let profil = null;
 let chambresData = {};
 let chambreSelectee = null;
+let typeProblemeSelectionne = null;
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 onAuth(async (user) => {
@@ -307,25 +323,71 @@ window.changerStatut = async (id, statut) => {
 
 window.ouvrirProbleme = (id) => {
   chambreSelectee = id;
+  typeProblemeSelectionne = null;
   const c = chambresData[id];
-  document.getElementById('modal-prob-title').textContent = `Chambre ${c?.num} — Problème`;
+  document.getElementById('modal-prob-title').textContent = `Chambre ${c?.num}`;
   document.getElementById('prob-desc').value = '';
+  document.getElementById('prob-type-hint').style.display = 'none';
+  document.getElementById('btn-confirmer-prob').disabled = true;
+  document.getElementById('btn-confirmer-prob').style.opacity = '0.4';
+  resetTypeButtons();
   document.getElementById('modal-prob').classList.add('open');
 };
 
+window.choisirTypeProbleme = (type) => {
+  typeProblemeSelectionne = type;
+  resetTypeButtons();
+  const hint = document.getElementById('prob-type-hint');
+  if(type === 'technique') {
+    document.getElementById('btn-type-technique').style.borderColor = '#8B2020';
+    hint.textContent = '🔧 Sera transmis à l\'équipe maintenance';
+  } else {
+    document.getElementById('btn-type-reappro').style.borderColor = 'var(--amber)';
+    hint.textContent = '🧺 Sera transmis directement à votre gouvernante';
+  }
+  hint.style.display = 'block';
+  document.getElementById('btn-confirmer-prob').disabled = false;
+  document.getElementById('btn-confirmer-prob').style.opacity = '1';
+};
+
+function resetTypeButtons() {
+  document.getElementById('btn-type-technique').style.borderColor = 'transparent';
+  document.getElementById('btn-type-reappro').style.borderColor = 'transparent';
+}
+
 window.confirmerProbleme = async () => {
   const desc = document.getElementById('prob-desc').value.trim();
+  if(!typeProblemeSelectionne) { showToast('⚠ Choisissez un type'); return; }
   if(!desc) { showToast('⚠ Décrivez le problème'); return; }
   const c = chambresData[chambreSelectee];
-  await signalerIncident(profil.hotel_id, {
-    chambre: c?.num,
-    description: desc,
-    signale_par: profil.nom,
-    urgence: 'normale'
-  });
-  await updateChambre(profil.hotel_id, chambreSelectee, { observation: desc });
+  const heure = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+  const ancienneObs = c?.observation || '';
+
+  if(typeProblemeSelectionne === 'technique') {
+    // Crée un vrai incident → va dans Maintenance
+    await signalerIncident(profil.hotel_id, {
+      chambre: c?.num,
+      description: desc,
+      signale_par: profil.nom,
+      urgence: 'normale'
+    });
+    const nouvelleLigne = `[${heure}] 🔧 ${desc}`;
+    const observationComplete = ancienneObs ? `${ancienneObs}\n${nouvelleLigne}` : nouvelleLigne;
+    await updateChambre(profil.hotel_id, chambreSelectee, { observation: observationComplete });
+    showToast(`🔧 Incident technique signalé — Chambre ${c?.num}`);
+  } else {
+    // Réapprovisionnement → entité traçable séparée, visible Gouvernante uniquement
+    await demanderReappro(profil.hotel_id, {
+      chambre: c?.num,
+      description: desc,
+      demande_par: profil.nom
+    });
+    const nouvelleLigne = `[${heure}] 🧺 Réappro demandé: ${desc}`;
+    const observationComplete = ancienneObs ? `${ancienneObs}\n${nouvelleLigne}` : nouvelleLigne;
+    await updateChambre(profil.hotel_id, chambreSelectee, { observation: observationComplete });
+    showToast(`🧺 Demande transmise à la gouvernante — Chambre ${c?.num}`);
+  }
   closeModal('modal-prob');
-  showToast(`⚠ Problème signalé — Chambre ${c?.num}`);
 };
 
 // ── Utils ─────────────────────────────────────────────────────────────────────
