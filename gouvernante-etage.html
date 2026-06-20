@@ -162,7 +162,13 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
       À contrôler <span class="tab-count" id="count-controle">0</span>
     </button>
     <button class="tab" id="tab-toutes" onclick="setTab('toutes')">
-      Toutes <span class="tab-count" id="count-toutes">0</span>
+      Nettoyage <span class="tab-count" id="count-toutes">0</span>
+    </button>
+    <button class="tab" id="tab-problemes" onclick="setTab('problemes')">
+      ⚠️ <span class="tab-count" id="count-problemes">0</span>
+    </button>
+    <button class="tab" id="tab-zones" onclick="setTab('zones')">
+      Zones <span class="tab-count" id="count-zones">0</span>
     </button>
   </div>
 
@@ -210,9 +216,14 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 
 <script type="module">
 import { onAuth, getUserProfile, logout,
-         watchChambres, updateChambre, signalerIncident } from './firebase.js';
+         watchChambres, updateChambre, signalerIncident,
+         watchIncidents, watchRalentissements, updateRalentissement,
+         watchZones, updateZone } from './firebase.js';
 
 let profil = null;
+let incidentsData = {};
+let ralentissementsData = {};
+let zonesData = {};
 let chambresData = {};
 let tabActif = 'controle';
 let chambreSelectee = null;
@@ -239,6 +250,18 @@ function initApp() {
     chambresData = data || {};
     render();
   });
+  watchIncidents(profil.hotel_id, data => {
+    incidentsData = data || {};
+    renderProblemes();
+  });
+  watchRalentissements(profil.hotel_id, data => {
+    ralentissementsData = data || {};
+    renderProblemes();
+  });
+  watchZones(profil.hotel_id, data => {
+    zonesData = data || {};
+    updateZonesCount();
+  });
 }
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
@@ -246,7 +269,9 @@ window.setTab = (t) => {
   tabActif = t;
   document.getElementById('tab-controle').classList.toggle('active', t === 'controle');
   document.getElementById('tab-toutes').classList.toggle('active', t === 'toutes');
-  render();
+  document.getElementById('tab-problemes').classList.toggle('active', t === 'problemes');
+  document.getElementById('tab-zones').classList.toggle('active', t === 'zones');
+  if(t === 'zones') renderZonesGE(); else render();
 };
 
 // ── Render ────────────────────────────────────────────────────────────────────
@@ -283,6 +308,8 @@ function render() {
     content.innerHTML = `
       <div class="section-title">Chambres à contrôler — Étage ${monEtage}</div>
       ${aControler.map(c => carteControle(c)).join('')}`;
+  } else if(tabActif === 'problemes') {
+    renderProblemes();
   } else {
     // Tableau de bord — vue supervision sans actions
     const counts = { sale:0, en_cours:0, prete:0, validee:0, occupee:0 };
@@ -369,7 +396,9 @@ function ligneSimple(c) {
     <div class="ch-num">${c.num}</div>
     <div class="ch-info">
       <div class="ch-type">${TYPES[c.type]||c.type}</div>
+      ${c.assignee_nom ? `<div style="font-size:11px;color:var(--tl);margin-top:2px;">👤 ${c.assignee_nom}</div>` : ''}
     </div>
+    ${c.observation ? `<span style="font-size:14px;margin-right:4px;" title="${c.observation}">⚠️</span>` : ''}
     ${statutIndicateur(c.statut)}
   </div>`;
 }
@@ -384,6 +413,132 @@ function statutIndicateur(s) {
   if(s === 'occupee')  return `<div class="s-dot sd-occ"></div>`;
   return '';
 }
+
+
+// ── Zones GE ──────────────────────────────────────────────────────────────────
+function updateZonesCount() {
+  const monEtage = parseInt(profil.etage);
+  const mesZones = Object.values(zonesData).filter(z => parseInt(z.etage) === monEtage || z.etage === 0);
+  const aFaire = mesZones.filter(z => z.statut !== 'fait').length;
+  document.getElementById('count-zones').textContent = aFaire;
+}
+
+function renderZonesGE() {
+  const monEtage = parseInt(profil.etage);
+  const mesZones = Object.entries(zonesData)
+    .map(([k,v]) => ({id:k,...v}))
+    .filter(z => parseInt(z.etage) === monEtage || z.etage === 0);
+  const content = document.getElementById('content');
+  const ZONE_ICONS = { couloir:'🏢', lingerie:'🧺', sport:'🏋', lobby:'🚪', spa:'💆', piscine:'🏊' };
+  if(!mesZones.length) {
+    content.innerHTML = '<div class="empty"><div class="empty-icon">🏢</div><div class="empty-title">Aucune zone assignée</div></div>';
+    return;
+  }
+  const aFaire  = mesZones.filter(z => z.statut !== 'fait');
+  const faites  = mesZones.filter(z => z.statut === 'fait');
+  content.innerHTML = `
+    ${aFaire.length ? `
+      <div class="section-title">À valider (${aFaire.length})</div>
+      ${aFaire.map(z => `
+        <div class="ctrl-card">
+          <div class="ctrl-header">
+            <div style="font-size:24px;">${ZONE_ICONS[z.type]||'📍'}</div>
+            <div class="ctrl-info">
+              <div class="ctrl-type">${z.nom}</div>
+              <div class="ctrl-staff">Étage ${z.etage === 0 ? 'RDC' : z.etage}</div>
+            </div>
+            <span class="badge b-cours" style="font-size:11px;">À faire</span>
+          </div>
+          <div class="ctrl-actions one">
+            <button class="ctrl-btn ctrl-btn-val" onclick="validerZoneGE('${z.id}')">✓ Zone faite</button>
+          </div>
+        </div>`).join('')}` : ''}
+    ${faites.length ? `
+      <div class="section-title" style="margin-top:8px;">Validées (${faites.length})</div>
+      ${faites.map(z => `
+        <div class="ctrl-card" style="opacity:0.6;">
+          <div class="ctrl-header">
+            <div style="font-size:24px;">${ZONE_ICONS[z.type]||'📍'}</div>
+            <div class="ctrl-info"><div class="ctrl-type">${z.nom}</div></div>
+            <span style="color:#C4853A;font-size:20px;">★</span>
+          </div>
+        </div>`).join('')}` : ''}`;
+}
+
+window.validerZoneGE = async (id) => {
+  await updateZone(profil.hotel_id, id, { statut: 'fait' });
+  showToast('★ Zone validée');
+};
+
+// ── Render problèmes ─────────────────────────────────────────────────────────
+function renderProblemes() {
+  const monEtage = parseInt(profil.etage);
+
+  // Incidents techniques sur mon étage
+  const incidents = Object.entries(incidentsData)
+    .map(([k,v]) => ({id:k,...v}))
+    .filter(i => i.statut !== 'resolu' && parseInt(i.chambre) >= monEtage*100+1 && parseInt(i.chambre) <= monEtage*100+99);
+
+  // Ralentissements sur mon étage
+  const ralentissements = Object.entries(ralentissementsData)
+    .map(([k,v]) => ({id:k,...v}))
+    .filter(r => r.statut === 'ouvert' && parseInt(r.chambre) >= monEtage*100+1 && parseInt(r.chambre) <= monEtage*100+99);
+
+  const total = incidents.length + ralentissements.length;
+  document.getElementById('count-problemes').textContent = total;
+
+  if(tabActif !== 'problemes') return;
+
+  const content = document.getElementById('content');
+  if(!total) {
+    content.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">✅</div>
+        <div class="empty-title">Aucun problème signalé</div>
+        <div class="empty-sub">Tout est sous contrôle sur l'étage ${monEtage}.</div>
+      </div>`;
+    return;
+  }
+
+  content.innerHTML = `
+    ${incidents.length ? `
+      <div class="section-title">🔧 Problèmes techniques (${incidents.length})</div>
+      ${incidents.map(i => `
+        <div class="ctrl-card">
+          <div class="ctrl-header">
+            <div class="ctrl-num">${i.chambre}</div>
+            <div class="ctrl-info">
+              <div class="ctrl-type" style="color:#8B2020;font-weight:500;">${i.description}</div>
+              <div class="ctrl-staff">Signalé par ${i.signale_par||'—'}</div>
+            </div>
+            <span class="badge b-sale" style="font-size:11px;">
+              ${i.statut === 'ouvert' ? 'Ouvert' : 'En cours'}
+            </span>
+          </div>
+        </div>`).join('')}` : ''}
+
+    ${ralentissements.length ? `
+      <div class="section-title" style="margin-top:8px;">⏱ Ralentissements (${ralentissements.length})</div>
+      ${ralentissements.map(r => `
+        <div class="ctrl-card">
+          <div class="ctrl-header">
+            <div class="ctrl-num">${r.chambre}</div>
+            <div class="ctrl-info">
+              <div class="ctrl-type" style="color:#8B5E14;font-weight:500;">${r.description}</div>
+              <div class="ctrl-staff">Signalé par ${r.signale_par||'—'}</div>
+            </div>
+            <div class="act-btn-val" onclick="leverRalentissementGE('${r.id}')"
+              style="background:#1B3A2D;border-color:#1B3A2D;">
+              <span style="color:#C4853A;font-size:14px;">✓</span>
+            </div>
+          </div>
+        </div>`).join('')}` : ''}`;
+}
+
+window.leverRalentissementGE = async (id) => {
+  await updateRalentissement(profil.hotel_id, id, { statut:'leve', leve_par: profil.nom });
+  showToast('✓ Ralentissement levé');
+};
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 window.valider = async (id) => {

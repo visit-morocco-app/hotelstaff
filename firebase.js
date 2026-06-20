@@ -99,6 +99,13 @@ export const updateReappro = (hotelId, reapproId, data) =>
 export const watchReappro = (hotelId, cb) =>
   onValue(ref(db, `hotels/${hotelId}/reappro`), snap => cb(snap.val() || {}));
 
+// ── Ralentissements (retards justifiés staff) ─────────────────────────────────
+export const watchRalentissements = (hotelId, cb) =>
+  onValue(ref(db, `hotels/${hotelId}/ralentissements`), snap => cb(snap.val() || {}));
+
+export const updateRalentissement = (hotelId, id, data) =>
+  update(ref(db, `hotels/${hotelId}/ralentissements/${id}`), { ...data, updated_at: Date.now() });
+
 // ── Shifts ────────────────────────────────────────────────────────────────────
 export const ouvrirShift = (hotelId, data) =>
   push(ref(db, `hotels/${hotelId}/shifts`), { ...data, ouvert_at: Date.now(), statut: "ouvert" });

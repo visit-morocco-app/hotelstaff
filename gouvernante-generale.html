@@ -177,32 +177,19 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
   <div class="content">
 
     <!-- Section chambres -->
-    <div class="section" id="section-chambres">
-      <div class="section-header" onclick="toggleSection('chambres')">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div class="section-icon">🚪</div>
-          <div>
-            <div class="section-title">Chambres</div>
-            <div class="section-sub" id="sub-chambres">—</div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span id="badge-chambres" class="warn-badge">—</span>
-          <span class="chevron open" id="chev-chambres">▾</span>
-        </div>
-      </div>
-      <div class="section-body open" id="body-chambres">
-        <div class="legend">
-          <div class="leg-item"><div class="leg-dot ld-sale"></div>Sale</div>
-          <div class="leg-item"><div class="leg-dot ld-cours"></div>En cours</div>
-          <div class="leg-item"><div class="leg-dot ld-prete"></div>Prête</div>
-          <div class="leg-item"><span class="ld-val">★</span>Validée</div>
-        </div>
-        <div id="chambres-list"></div>
-      </div>
+    <!-- Légende unique en haut -->
+    <div style="background:#fff;border-radius:12px;border:0.5px solid var(--cb);padding:10px 14px;display:flex;gap:14px;flex-wrap:wrap;">
+      <div class="leg-item"><div class="leg-dot ld-sale"></div>Sale</div>
+      <div class="leg-item"><div class="leg-dot ld-cours"></div>En cours</div>
+      <div class="leg-item"><div class="leg-dot ld-prete"></div>Prête</div>
+      <div class="leg-item"><span class="ld-val">★</span>Validée</div>
+      <div class="leg-item"><span style="font-size:13px;">⚠️</span>Incident</div>
     </div>
 
-    <!-- Section zones -->
+    <!-- Sections par étage (générées dynamiquement) -->
+    <div id="etages-sections"></div>
+
+    <!-- Zones communes -->
     <div class="section" id="section-zones">
       <div class="section-header" onclick="toggleSection('zones')">
         <div style="display:flex;align-items:center;gap:10px;">
@@ -222,27 +209,27 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
       </div>
     </div>
 
-    <!-- Section réapprovisionnement -->
-    <div class="section" id="section-reappro">
-      <div class="section-header" onclick="toggleSection('reappro')">
+    <!-- Incidents (retards + problèmes fusionnés) -->
+    <div class="section" id="section-incidents">
+      <div class="section-header" onclick="toggleSection('incidents')">
         <div style="display:flex;align-items:center;gap:10px;">
-          <div class="section-icon">🧺</div>
+          <div class="section-icon">⚠️</div>
           <div>
-            <div class="section-title">Réapprovisionnement</div>
-            <div class="section-sub" id="sub-reappro">—</div>
+            <div class="section-title">Incidents</div>
+            <div class="section-sub" id="sub-incidents">—</div>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <span id="badge-reappro" class="warn-badge">—</span>
-          <span class="chevron" id="chev-reappro">▾</span>
+          <span id="badge-incidents" class="warn-badge">—</span>
+          <span class="chevron" id="chev-incidents">▾</span>
         </div>
       </div>
-      <div class="section-body" id="body-reappro">
-        <div id="reappro-list"></div>
+      <div class="section-body" id="body-incidents">
+        <div id="incidents-list-gg"></div>
       </div>
     </div>
 
-    <!-- Section équipe étages -->
+    <!-- Équipe étages -->
     <div class="section" id="section-equipe">
       <div class="section-header" onclick="toggleSection('equipe')">
         <div style="display:flex;align-items:center;gap:10px;">
@@ -260,6 +247,22 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
       <div class="section-body" id="body-equipe">
         <div id="equipe-list"></div>
       </div>
+    </div>
+
+    <!-- Sections cachées (nécessaires pour les fonctions existantes) -->
+    <div style="display:none;">
+      <div id="body-ralentissements"><div id="ralentissements-list"></div></div>
+      <div id="body-reappro"><div id="reappro-list"></div></div>
+      <div id="sub-chambres"></div>
+      <div id="badge-chambres"></div>
+      <div id="chev-chambres"></div>
+      <div id="sub-ralentissements"></div>
+      <div id="badge-ralentissements"></div>
+      <div id="chev-ralentissements"></div>
+      <div id="sub-reappro"></div>
+      <div id="badge-reappro"></div>
+      <div id="chev-reappro"></div>
+      <div id="progress-label"></div>
     </div>
 
   </div>
@@ -285,29 +288,15 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
     </div>
 
     <div class="modal-section">
-      <div class="modal-label">Observation</div>
-      <textarea class="obs-input" id="obs-input" rows="2" placeholder="Ajouter une note…"></textarea>
+      <div class="modal-label">Historique observations</div>
+      <textarea class="obs-input" id="obs-input" rows="3"
+        style="background:#F5F5F5;color:#9C9080;cursor:not-allowed;resize:none;"
+        readonly placeholder="Aucune observation"></textarea>
     </div>
 
     <div class="modal-actions">
       <button class="modal-btn modal-btn-cancel" onclick="closeModal('modal-chambre')">Annuler</button>
       <button class="modal-btn modal-btn-primary" onclick="sauvegarderChambre()">Enregistrer</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal modifier zone -->
-<div class="modal-overlay" id="modal-zone" onclick="closeModal('modal-zone', event)">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="modal-zone-title">Zone</div>
-    <div class="modal-sub">Mettre à jour le statut</div>
-    <div class="modal-section">
-      <div class="staff-list" id="zone-statuts"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modal-zone')">Annuler</button>
-      <button class="modal-btn modal-btn-primary" onclick="sauvegarderZone()">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -319,18 +308,20 @@ import { onAuth, getUserProfile, logout,
          watchChambres, updateChambre,
          watchZones, updateZone,
          watchStaff, ouvrirShift, cloturerShift,
-         watchReappro, updateReappro } from './firebase.js';
+         watchReappro, updateReappro,
+         watchRalentissements, updateRalentissement,
+         watchIncidents } from './firebase.js';
 
 let profil = null;
 let reapproData = {};
+let incidentsData = {};
+let ralentissementsData = {};
 let shiftActif = 'matin';
 let chambresData = {};
 let zonesData = {};
 let staffData = {};
 let chambreSelectee = null;
-let zoneSelectee = null;
 let staffSelectionne = null;
-let nouveauStatutZone = null;
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 onAuth(async (user) => {
@@ -353,6 +344,8 @@ function initApp() {
   watchZones(profil.hotel_id,   data => { zonesData   = data || {}; renderZones();   updateSubmit(); });
   watchStaff(profil.hotel_id,   data => { staffData   = data || {}; renderEquipe(); });
   watchReappro(profil.hotel_id, data => { reapproData = data || {}; renderReappro(); });
+  watchRalentissements(profil.hotel_id, data => { ralentissementsData = data || {}; renderRalentissements(); });
+  watchIncidents(profil.hotel_id, data => { incidentsData = data || {}; renderChambres(); });
 }
 
 // ── Date ──────────────────────────────────────────────────────────────────────
@@ -375,41 +368,130 @@ window.setShift = (s) => {
 function renderChambres() {
   const vals = Object.entries(chambresData).map(([k,v]) => ({id:k,...v}));
   vals.sort((a,b) => a.num - b.num);
-  const total   = vals.length;
-  const pretes  = vals.filter(c => c.statut === 'prete' || c.statut === 'validee').length;
-  const validees = vals.filter(c => c.statut === 'validee').length;
+  const total     = vals.length;
+  const validees  = vals.filter(c => c.statut === 'validee').length;
   const enAttente = vals.filter(c => c.statut !== 'validee' && c.statut !== 'occupee').length;
 
-  document.getElementById('sub-chambres').textContent = `${validees} / ${total} validées`;
-  document.getElementById('progress-label').textContent = `${pretes} / ${total} prêtes`;
+  // Mettre à jour barre de progression
+  const pct = total ? Math.round(validees/total*100) : 0;
+  const progressFill = document.getElementById('progress-fill');
+  const progressPct  = document.getElementById('progress-pct');
+  const progressSub  = document.getElementById('progress-sub');
+  if(progressFill) progressFill.style.width = pct + '%';
+  if(progressPct)  progressPct.textContent  = pct + '%';
+  if(progressSub)  progressSub.textContent  = `${validees} validée${validees>1?'s':''} sur ${total}`;
 
-  const badge = document.getElementById('badge-chambres');
-  if(enAttente === 0) { badge.textContent = 'Tout validé ✓'; badge.className = 'ok-badge'; }
-  else { badge.textContent = `${enAttente} en attente`; badge.className = 'warn-badge'; }
+  // Grouper par étage
+  const parEtage = {};
+  vals.forEach(c => {
+    if(!parEtage[c.etage]) parEtage[c.etage] = [];
+    parEtage[c.etage].push(c);
+  });
 
-  document.getElementById('chambres-list').innerHTML = vals.map(c => `
-    <div class="ch-row">
-      <div class="ch-num">${c.num}</div>
-      <div class="ch-info">
-        <div class="ch-type">${TYPES[c.type]||c.type} · Étage ${c.etage}</div>
-        ${c.observation ? `<div style="font-size:11px;color:var(--gold-dark);margin-top:2px;white-space:pre-line;line-height:1.5;">📝 ${c.observation}</div>` : ''}
-      </div>
-      <div class="ch-right">
-        ${statutIndicateur(c.statut)}
-        ${c.statut === 'validee'
-          ? `<div class="act-btn" title="Consulter" onclick="ouvrirModalChambre('${c.id}')">
-               <span style="font-size:14px;color:var(--tl);">👁</span>
-             </div>`
-          : c.statut === 'occupee'
-          ? `<div class="act-btn" title="Consulter" onclick="ouvrirModalChambre('${c.id}')">
-               <span style="font-size:14px;color:var(--tl);">👁</span>
-             </div>`
-          : `<div class="act-btn" title="Modifier" onclick="ouvrirModalChambre('${c.id}')">
-               <span style="font-size:13px;color:var(--tl);">✏</span>
-             </div>`
-        }
-      </div>
-    </div>`).join('');
+  const etages = Object.keys(parEtage).sort((a,b) => a-b);
+  const container = document.getElementById('etages-sections');
+  if(!container) return;
+
+  container.innerHTML = etages.map(etage => {
+    const chs = parEtage[etage];
+    const valEtage     = chs.filter(c => c.statut === 'validee').length;
+    const attenteEtage = chs.filter(c => c.statut !== 'validee' && c.statut !== 'occupee').length;
+    const badgeClass   = attenteEtage === 0 ? 'ok-badge' : 'warn-badge';
+    const badgeText    = attenteEtage === 0 ? '✓ Validé' : `${attenteEtage} en attente`;
+    const isOpen       = false; // Fermé par défaut — GG ouvre ce qu'elle veut
+    const label        = parseInt(etage) === 0 ? 'RDC' : `Étage ${String(etage).padStart(2,'0')}`;
+
+    return `
+      <div class="section">
+        <div class="section-header" onclick="toggleEtage(${etage})">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="section-icon">🚪</div>
+            <div>
+              <div class="section-title">${label}</div>
+              <div class="section-sub">${valEtage} / ${chs.length} validées</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="${badgeClass}">${badgeText}</span>
+            <span class="chevron ${isOpen ? 'open':''}" id="chev-etage-${etage}" style="display:inline-block;transform:${isOpen?'rotate(180deg)':'rotate(0deg)'};transition:transform 0.2s;">▾</span>
+          </div>
+        </div>
+        <div class="section-body ${isOpen?'open':''}" id="etage-body-${etage}" style="${isOpen?'':'display:none;'}">
+          ${chs.map(c => `
+            <div class="ch-row">
+              <div class="ch-num">${c.num}</div>
+              <div class="ch-info">
+                <div class="ch-type">${TYPES[c.type]||c.type}</div>
+                ${c.assignee_nom
+                  ? `<div style="font-size:11px;color:var(--tl);margin-top:2px;">👤 ${c.assignee_nom}</div>`
+                  : `<div style="font-size:11px;color:#C0504D;margin-top:2px;">Non assignée</div>`}
+              </div>
+              <div class="ch-right">
+                ${Object.values(incidentsData).some(i => String(i.chambre) === String(c.num) && i.statut !== 'resolu')
+                  ? `<span style="font-size:14px;" title="Incident en cours">⚠️</span>` : ''}
+                ${statutIndicateur(c.statut)}
+                ${c.statut === 'validee' || c.statut === 'occupee'
+                  ? `<div class="act-btn" onclick="ouvrirModalChambre('${c.id}')"><span style="font-size:14px;color:var(--tl);">👁</span></div>`
+                  : `<div class="act-btn" onclick="ouvrirModalChambre('${c.id}')"><span style="font-size:13px;color:var(--tl);">✏</span></div>`}
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  }).join('');
+
+  // Mettre à jour section incidents fusionnée
+  renderIncidentsGG();
+}
+
+window.toggleEtage = (etage) => {
+  const body = document.getElementById(`etage-body-${etage}`);
+  const chev = document.getElementById(`chev-etage-${etage}`);
+  if(!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  chev.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+};
+
+function renderIncidentsGG() {
+  const incidents = Object.values(incidentsData).filter(i => i.statut !== 'resolu');
+  const ralentissements = Object.values(ralentissementsData).filter(r => r.statut === 'ouvert');
+  const total = incidents.length + ralentissements.length;
+
+  const badge = document.getElementById('badge-incidents');
+  const sub   = document.getElementById('sub-incidents');
+  const list  = document.getElementById('incidents-list-gg');
+  if(!badge || !sub || !list) return;
+
+  sub.textContent   = `${total} en cours`;
+  badge.textContent = total === 0 ? 'Aucun ✓' : `${total} en cours`;
+  badge.className   = total === 0 ? 'ok-badge' : 'warn-badge';
+
+  if(!total) {
+    list.innerHTML = `<div style="padding:16px;text-align:center;font-size:13px;color:var(--tl);">✅ Aucun incident en cours</div>`;
+    return;
+  }
+
+  list.innerHTML = `
+    ${incidents.map(i => {
+      const heure = i.created_at ? new Date(i.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '—';
+      return `<div class="ch-row" style="border-left:3px solid #C0504D;">
+        <div style="font-size:20px;flex-shrink:0;">🔧</div>
+        <div class="ch-info">
+          <div style="font-size:13px;font-weight:500;color:#8B2020;">Ch. ${i.chambre} — ${i.description}</div>
+          <div style="font-size:11px;color:var(--tl);margin-top:2px;">${i.signale_par||'—'} · ${heure} · ${i.statut}</div>
+        </div>
+      </div>`;
+    }).join('')}
+    ${ralentissements.map(r => {
+      const heure = r.created_at ? new Date(r.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '—';
+      return `<div class="ch-row" style="border-left:3px solid #E08B14;">
+        <div style="font-size:20px;flex-shrink:0;">⏱</div>
+        <div class="ch-info">
+          <div style="font-size:13px;font-weight:500;color:#8B5E14;">Ch. ${r.chambre} — ${r.description}</div>
+          <div style="font-size:11px;color:var(--tl);margin-top:2px;">${r.signale_par||'—'} · ${heure}</div>
+        </div>
+      </div>`;
+    }).join('')}`;
 }
 
 const TYPES = { simple:'Simple', double:'Double', suite:'Suite' };
@@ -442,13 +524,25 @@ function renderZones() {
       ${z.statut === 'fait'
         ? `<span style="color:#C4853A;font-size:16px;">★</span>`
         : `<div class="s-dot sd-sale"></div>`}
-      <div class="act-btn" onclick="ouvrirModalZone('${z.id}')">
-        <span style="font-size:13px;color:var(--tl);">✏</span>
-      </div>
+      
     </div>`).join('');
 }
 
 const ZONE_ICONS = { couloir:'🏢', lingerie:'🧺', sport:'🏋', lobby:'🚪' };
+
+// ── Render ralentissements ────────────────────────────────────────────────────
+function renderRalentissements() {
+  renderIncidentsGG();
+}
+
+
+window.leverRalentissement = async (id) => {
+  await updateRalentissement(profil.hotel_id, id, {
+    statut: 'leve',
+    leve_par: profil.nom
+  });
+  showToast(`✓ Retard levé — Chambre ${ralentissementsData[id]?.chambre}`);
+};
 
 // ── Render réapprovisionnement ────────────────────────────────────────────────
 function renderReappro() {
@@ -459,7 +553,7 @@ function renderReappro() {
   const ouverts = vals.filter(r => r.statut === 'ouvert');
   const traites = vals.filter(r => r.statut === 'traite');
 
-  document.getElementById('sub-reappro').textContent = `${ouverts.length} en attente`;
+  document.getElementById('sub-reappro').textContent = `${ouverts.length} problème${ouverts.length>1?'s':''} en attente`;
   const badge = document.getElementById('badge-reappro');
   if(ouverts.length === 0) { badge.textContent = 'Tout traité ✓'; badge.className = 'ok-badge'; }
   else { badge.textContent = `${ouverts.length} à traiter`; badge.className = 'warn-badge'; }
@@ -546,21 +640,24 @@ window.togglePresence = (id, present) => {
 
 // ── Bouton soumettre ──────────────────────────────────────────────────────────
 function updateSubmit() {
-  const chambresOK = Object.values(chambresData).every(c => c.statut === 'validee' || c.statut === 'occupee');
-  const zonesOK    = Object.values(zonesData).every(z => z.statut === 'fait');
+  // Périmètre shift : uniquement les chambres NON occupées (la réception gère l'occupation)
+  const chambresShift = Object.values(chambresData).filter(c => c.statut !== 'occupee');
+  const chambresOK    = chambresShift.every(c => c.statut === 'validee');
+  const zonesOK       = Object.values(zonesData).every(z => z.statut === 'fait');
   const btn  = document.getElementById('submit-btn');
   const note = document.getElementById('submit-note');
+
   if(chambresOK && zonesOK) {
     btn.classList.add('active'); btn.disabled = false;
-    note.textContent = 'Tout est validé — prêt à soumettre';
+    note.textContent = '✅ Toutes les chambres sont prêtes — shift à soumettre';
   } else {
     btn.classList.remove('active'); btn.disabled = true;
-    const nbCh = Object.values(chambresData).filter(c => c.statut !== 'validee' && c.statut !== 'occupee').length;
+    const nbCh = chambresShift.filter(c => c.statut !== 'validee').length;
     const nbZo = Object.values(zonesData).filter(z => z.statut !== 'fait').length;
     const parts = [];
-    if(nbCh > 0) parts.push(`${nbCh} chambre${nbCh>1?'s':''}`);
-    if(nbZo > 0) parts.push(`${nbZo} zone${nbZo>1?'s':''}`);
-    note.textContent = parts.join(' et ') + ' en attente';
+    if(nbCh > 0) parts.push(`${nbCh} chambre${nbCh>1?'s':''} à valider`);
+    if(nbZo > 0) parts.push(`${nbZo} zone${nbZo>1?'s':''} à faire`);
+    note.textContent = parts.join(' · ');
   }
 }
 
@@ -591,13 +688,24 @@ window.ouvrirModalChambre = (id) => {
   document.getElementById('modal-ch-title').textContent = `Chambre ${c?.num}`;
   document.getElementById('modal-ch-sub').textContent = `${TYPES[c?.type]||''} · Étage ${c?.etage}`;
   document.getElementById('obs-input').value = c?.observation || '';
-  const staffVals = Object.entries(staffData).map(([k,v]) => ({id:k,...v}));
+  const staffVals = Object.entries(staffData)
+    .map(([k,v]) => ({id:k,...v}))
+    .filter(s => ['staff','gouv_etage'].includes(s.role))
+    .sort((a,b) => {
+      // Gouvernantes d'étage en premier, puis staff
+      if(a.role === 'gouv_etage' && b.role !== 'gouv_etage') return -1;
+      if(b.role === 'gouv_etage' && a.role !== 'gouv_etage') return 1;
+      return (a.nom||'').localeCompare(b.nom||'');
+    });
+
+  const ROLE_LABEL = { gouv_etage: "Gouvernante d'étage", staff: 'Staff' };
+
   document.getElementById('staff-list').innerHTML = staffVals.length
     ? staffVals.map(s => `
         <div class="staff-item ${s.id === staffSelectionne ? 'selected':''}" onclick="selStaff('${s.id}')">
           <div>
             <div class="staff-nom">${s.nom}</div>
-            <div class="staff-dispo">Disponible</div>
+            <div class="staff-dispo">${ROLE_LABEL[s.role]||s.role}${s.etage ? ` · Étage ${s.etage}` : ''}</div>
           </div>
           ${s.id === staffSelectionne ? '<span style="color:var(--gd);font-weight:600;">✓</span>' : ''}
         </div>`).join('')
@@ -627,35 +735,11 @@ window.sauvegarderChambre = async () => {
 };
 
 // ── Modal zone ────────────────────────────────────────────────────────────────
-window.ouvrirModalZone = (id) => {
-  zoneSelectee = id;
-  nouveauStatutZone = zonesData[id]?.statut || 'a_faire';
-  document.getElementById('modal-zone-title').textContent = zonesData[id]?.nom || 'Zone';
-  document.getElementById('zone-statuts').innerHTML = [
-    { val:'a_faire', label:'À faire',   icon:'⬜' },
-    { val:'en_cours', label:'En cours', icon:'🟡' },
-    { val:'fait',     label:'Fait ★',   icon:'★'  },
-  ].map(s => `
-    <div class="staff-item ${s.val === nouveauStatutZone ? 'selected':''}" onclick="selZoneStatut('${s.val}')">
-      <div class="staff-nom">${s.icon} ${s.label}</div>
-      ${s.val === nouveauStatutZone ? '<span style="color:var(--gd);font-weight:600;">✓</span>' : ''}
-    </div>`).join('');
-  document.getElementById('modal-zone').classList.add('open');
-};
 
-window.selZoneStatut = (val) => {
-  nouveauStatutZone = val;
-  document.querySelectorAll('#zone-statuts .staff-item').forEach((el, i) => {
-    el.classList.toggle('selected', i === ['a_faire','en_cours','fait'].indexOf(val));
-  });
-};
 
-window.sauvegarderZone = async () => {
-  if(!zoneSelectee) return;
-  await updateZone(profil.hotel_id, zoneSelectee, { statut: nouveauStatutZone });
-  closeModal('modal-zone');
-  showToast('Zone mise à jour ✓');
-};
+
+
+
 
 // ── Soumettre shift ───────────────────────────────────────────────────────────
 window.soumettreShift = async () => {

@@ -145,25 +145,36 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title" id="modal-prob-title">Signaler</div>
-    <div class="modal-sub">Quel type de signalement ?</div>
+    <div class="modal-sub">Quel est l'impact sur votre travail ?</div>
 
     <!-- Choix du type -->
-    <div id="prob-type-choice" style="display:flex;gap:10px;margin-bottom:16px;">
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
       <button class="ch-btn" id="btn-type-technique" onclick="choisirTypeProbleme('technique')"
-        style="flex:1;background:var(--red-light);color:#8B2020;border:2px solid transparent;">
-        🔧 Problème technique
+        style="background:#FAEAEA;color:#8B2020;border:2px solid transparent;padding:12px 14px;border-radius:10px;text-align:left;">
+        <div style="font-size:14px;font-weight:600;">🔧 Problème technique</div>
+        <div style="font-size:11px;margin-top:2px;opacity:0.75;">Robinet, clim, équipement → Maintenance</div>
       </button>
-      <button class="ch-btn" id="btn-type-reappro" onclick="choisirTypeProbleme('reappro')"
-        style="flex:1;background:var(--amber-light);color:var(--amber);border:2px solid transparent;">
-        🧺 Réapprovisionnement
+      <button class="ch-btn" id="btn-type-bloquant" onclick="choisirTypeProbleme('bloquant')"
+        style="background:#FDF3E3;color:#8B5E14;border:2px solid transparent;padding:12px 14px;border-radius:10px;text-align:left;">
+        <div style="font-size:14px;font-weight:600;">⏱ Ça va me ralentir</div>
+        <div style="font-size:11px;margin-top:2px;opacity:0.75;">Rupture stock, chambre très sale → Gouvernante</div>
       </button>
     </div>
 
-    <div id="prob-type-hint" style="font-size:11px;color:var(--tl);margin-bottom:10px;display:none;"></div>
+    <!-- Catégories (affichées selon le type choisi) -->
+    <div id="prob-categories" style="display:none;margin-bottom:12px;">
+      <div class="modal-label">Catégorie</div>
+      <div id="prob-categorie-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <input type="hidden" id="prob-categorie" value="">
+    </div>
 
-    <div class="modal-label">Description</div>
-    <textarea class="modal-input" id="prob-desc" rows="3" placeholder="Décrivez le problème ou le besoin…"></textarea>
-    <div class="modal-actions">
+    <!-- Précision optionnelle -->
+    <div id="prob-precision-wrap" style="display:none;">
+      <div class="modal-label">Préciser (optionnel)</div>
+      <textarea class="modal-input" id="prob-desc" rows="2" placeholder="Ajouter des détails si nécessaire…"></textarea>
+    </div>
+
+    <div class="modal-actions" style="margin-top:14px;">
       <button class="modal-btn modal-btn-cancel" onclick="closeModal('modal-prob')">Annuler</button>
       <button class="modal-btn modal-btn-primary" id="btn-confirmer-prob" onclick="confirmerProbleme()" disabled style="opacity:0.4;">Signaler</button>
     </div>
@@ -174,11 +185,13 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 
 <script type="module">
 import { onAuth, getUserProfile, logout,
-         watchChambres, updateChambre, signalerIncident, demanderReappro } from './firebase.js';
+         watchChambres, updateChambre, signalerIncident, demanderReappro,
+         watchIncidents } from './firebase.js';
 
 let profil = null;
 let chambresData = {};
 let chambreSelectee = null;
+let incidentsData = {};
 let typeProblemeSelectionne = null;
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
@@ -200,6 +213,10 @@ function initApp() {
 
   watchChambres(profil.hotel_id, data => {
     chambresData = data || {};
+    render();
+  });
+  watchIncidents(profil.hotel_id, data => {
+    incidentsData = data || {};
     render();
   });
 }
@@ -270,21 +287,25 @@ function carteStaff(c, done = false) {
   let actions = '';
   if(isSale) {
     actions = `
-      <div class="ch-actions two">
+      <div class="ch-actions one">
         <button class="ch-btn btn-cours" onclick="changerStatut('${c.id}','en_cours')">🧹 Je commence</button>
-        <button class="ch-btn btn-prob"  onclick="ouvrirProbleme('${c.id}')">⚠ Problème</button>
       </div>`;
   } else if(isCours) {
-    actions = `
+    const hasIncident = Object.values(incidentsData).some(
+      i => String(i.chambre) === String(c.num) && i.statut !== 'resolu'
+    );
+    actions = hasIncident ? `
+      <div class="ch-actions one">
+        <div style="background:#FDF3E3;color:#8B5E14;border-radius:10px;padding:12px;font-size:13px;font-weight:500;text-align:center;">
+          ⏳ En attente de la maintenance
+        </div>
+      </div>` : `
       <div class="ch-actions two">
         <button class="ch-btn btn-prete" onclick="changerStatut('${c.id}','prete')">✓ C'est prêt !</button>
         <button class="ch-btn btn-prob"  onclick="ouvrirProbleme('${c.id}')">⚠ Problème</button>
       </div>`;
   } else if(isPrete) {
-    actions = `
-      <div class="ch-actions one">
-        <button class="ch-btn btn-prob" onclick="ouvrirProbleme('${c.id}')">⚠ Signaler un problème</button>
-      </div>`;
+    actions = '';
   }
 
   return `
@@ -327,38 +348,100 @@ window.ouvrirProbleme = (id) => {
   const c = chambresData[id];
   document.getElementById('modal-prob-title').textContent = `Chambre ${c?.num}`;
   document.getElementById('prob-desc').value = '';
-  document.getElementById('prob-type-hint').style.display = 'none';
+  document.getElementById('prob-categories').style.display = 'none';
+  document.getElementById('prob-precision-wrap').style.display = 'none';
   document.getElementById('btn-confirmer-prob').disabled = true;
   document.getElementById('btn-confirmer-prob').style.opacity = '0.4';
   resetTypeButtons();
   document.getElementById('modal-prob').classList.add('open');
 };
 
+const CATEGORIES = {
+  technique: [
+    'Robinet / plomberie',
+    'Climatisation / chauffage',
+    'Électricité / ampoule',
+    'Mobilier endommagé',
+    'Serrure / porte',
+    'TV / téléphone',
+    'Autre problème technique'
+  ],
+  bloquant: [
+    'Rupture de stock (produits)',
+    'Rupture de linge / serviettes',
+    'Chambre très sale (départ difficile)',
+    'Client encore présent',
+    'Attente équipement / matériel',
+    'Autre ralentissement'
+  ]
+};
+
 window.choisirTypeProbleme = (type) => {
   typeProblemeSelectionne = type;
   resetTypeButtons();
-  const hint = document.getElementById('prob-type-hint');
   if(type === 'technique') {
     document.getElementById('btn-type-technique').style.borderColor = '#8B2020';
-    hint.textContent = '🔧 Sera transmis à l\'équipe maintenance';
   } else {
-    document.getElementById('btn-type-reappro').style.borderColor = 'var(--amber)';
-    hint.textContent = '🧺 Sera transmis directement à votre gouvernante';
+    document.getElementById('btn-type-bloquant').style.borderColor = '#8B5E14';
   }
-  hint.style.display = 'block';
-  document.getElementById('btn-confirmer-prob').disabled = false;
-  document.getElementById('btn-confirmer-prob').style.opacity = '1';
+
+  // Couleur accent selon type
+  const accentColor = type === 'technique' ? '#8B2020' : '#8B5E14';
+  const accentBg    = type === 'technique' ? '#FAEAEA' : '#FDF3E3';
+
+  // Peupler avec boutons stylisés
+  const list = document.getElementById('prob-categorie-list');
+  const hidden = document.getElementById('prob-categorie');
+  hidden.value = '';
+  list.innerHTML = '';
+
+  CATEGORIES[type].forEach(cat => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = cat;
+    btn.style.cssText = `padding:9px 12px;border-radius:8px;border:1px solid #EDE8DC;
+      background:#FDFCFA;font-size:13px;font-family:inherit;text-align:left;
+      cursor:pointer;color:#1A1714;transition:all 0.15s;`;
+    btn.onclick = () => {
+      // Reset tous les boutons
+      list.querySelectorAll('button').forEach(b => {
+        b.style.background = '#FDFCFA';
+        b.style.borderColor = '#EDE8DC';
+        b.style.color = '#1A1714';
+        b.style.fontWeight = 'normal';
+      });
+      // Sélectionner ce bouton
+      btn.style.background = accentBg;
+      btn.style.borderColor = accentColor;
+      btn.style.color = accentColor;
+      btn.style.fontWeight = '500';
+      hidden.value = cat;
+      // Activer le bouton Signaler
+      document.getElementById('btn-confirmer-prob').disabled = false;
+      document.getElementById('btn-confirmer-prob').style.opacity = '1';
+    };
+    list.appendChild(btn);
+  });
+
+  document.getElementById('prob-categories').style.display = 'block';
+  document.getElementById('prob-precision-wrap').style.display = 'block';
+  document.getElementById('prob-desc').value = '';
+  document.getElementById('btn-confirmer-prob').disabled = true;
+  document.getElementById('btn-confirmer-prob').style.opacity = '0.4';
 };
 
 function resetTypeButtons() {
   document.getElementById('btn-type-technique').style.borderColor = 'transparent';
-  document.getElementById('btn-type-reappro').style.borderColor = 'transparent';
+  document.getElementById('btn-type-bloquant').style.borderColor = 'transparent';
 }
 
 window.confirmerProbleme = async () => {
-  const desc = document.getElementById('prob-desc').value.trim();
+  const categorie = document.getElementById('prob-categorie').value;
+  const precision = document.getElementById('prob-desc').value.trim();
   if(!typeProblemeSelectionne) { showToast('⚠ Choisissez un type'); return; }
-  if(!desc) { showToast('⚠ Décrivez le problème'); return; }
+  if(!categorie) { showToast('⚠ Choisissez une catégorie'); return; }
+
+  const desc = precision ? `${categorie} — ${precision}` : categorie;
   const c = chambresData[chambreSelectee];
   const heure = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
   const ancienneObs = c?.observation || '';

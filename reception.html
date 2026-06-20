@@ -199,7 +199,9 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 
 <script type="module">
 import { onAuth, getUserProfile, logout,
-         watchChambres, updateChambre } from './firebase.js';
+         watchChambres, updateChambre, watchIncidents } from './firebase.js';
+
+let incidentsData = {};
 
 let profil = null;
 let chambresData = {};
@@ -229,6 +231,10 @@ function initApp() {
   watchChambres(profil.hotel_id, data => {
     chambresData = data || {};
     updateStats();
+    render();
+  });
+  watchIncidents(profil.hotel_id, data => {
+    incidentsData = data || {};
     render();
   });
 }
@@ -439,7 +445,8 @@ window.ouvrirModal = (id) => {
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 window.confirmerCheckin = async (id) => {
-  await updateChambre(profil.hotel_id, id, { statut:'occupee' });
+  // On efface l'observation au check-in → ardoise vierge pour le prochain cycle
+  await updateChambre(profil.hotel_id, id, { statut:'occupee', observation:'' });
   closeModal('modal-chambre');
   showToast(`🔑 Check-in confirmé — Chambre ${chambresData[id]?.num}`);
 };
