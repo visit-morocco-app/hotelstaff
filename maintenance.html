@@ -122,7 +122,9 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
   <div class="header">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
       <div>
-        <div class="hotel-name" id="hotel-name">Hôtel</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+        <div id="hotel-logo-wrap" style="display:none;width:28px;height:28px;border-radius:6px;overflow:hidden;flex-shrink:0;"><img id="hotel-logo-img" src="" style="width:100%;height:100%;object-fit:cover;"></div>
+        <div class="hotel-name" id="hotel-name">Hôtel</div></div>
         <div class="hotel-sub">Maintenance</div>
       </div>
       <div class="avatar" id="avatar" onclick="doLogout()">H</div>
@@ -183,6 +185,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 
 <script type="module">
 import { onAuth, getUserProfile, logout,
+         watchHotel,
          watchIncidents, updateIncident } from './firebase.js';
 
 let profil = null;
@@ -203,6 +206,20 @@ onAuth(async (user) => {
 function initApp() {
   document.getElementById('app').style.display = 'block';
   document.getElementById('hotel-name').textContent = profil.hotel_nom || 'Hôtel';
+  // Afficher le logo si disponible
+  if(profil.hotel_logo) {
+    const wrap = document.getElementById('hotel-logo-wrap');
+    const img  = document.getElementById('hotel-logo-img');
+    if(wrap && img) { img.src = profil.hotel_logo; wrap.style.display = 'block'; }
+  }
+  // Logo en temps réel
+  watchHotel(profil.hotel_id, hotel => {
+    if(hotel.logo) {
+      const wrap = document.getElementById('hotel-logo-wrap');
+      const img  = document.getElementById('hotel-logo-img');
+      if(wrap && img) { img.src = hotel.logo; wrap.style.display = 'block'; }
+    }
+  });
   document.getElementById('user-nom').textContent   = profil.nom || '';
   const init = (profil.nom||'M').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   document.getElementById('avatar').textContent = init;

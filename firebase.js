@@ -51,7 +51,16 @@ export const onAuth = (cb) => onAuthStateChanged(auth, cb);
 export const getUserProfile = async (uid) => {
   const snap = await get(ref(db, `users/${uid}`));
   if (!snap.exists()) return null;
-  return { ...snap.val(), uid }; // on injecte l'uid dans le profil
+  const profil = { ...snap.val(), uid };
+  // Charger le logo depuis l'hôtel
+  if(profil.hotel_id) {
+    const hotelSnap = await get(ref(db, `hotels/${profil.hotel_id}`));
+    if(hotelSnap.exists()) {
+      const hotel = hotelSnap.val();
+      if(hotel.logo) profil.hotel_logo = hotel.logo;
+    }
+  }
+  return profil;
 };
 
 // ── Chambres ──────────────────────────────────────────────────────────────────
@@ -100,6 +109,10 @@ export const watchReappro = (hotelId, cb) =>
   onValue(ref(db, `hotels/${hotelId}/reappro`), snap => cb(snap.val() || {}));
 
 // ── Ralentissements (retards justifiés staff) ─────────────────────────────────
+// ── Hotel (logo, nom) ────────────────────────────────────────────────────────
+export const watchHotel = (hotelId, cb) =>
+  onValue(ref(db, `hotels/${hotelId}`), snap => cb(snap.val() || {}));
+
 export const watchRalentissements = (hotelId, cb) =>
   onValue(ref(db, `hotels/${hotelId}/ralentissements`), snap => cb(snap.val() || {}));
 

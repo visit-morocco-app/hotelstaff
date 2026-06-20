@@ -147,11 +147,21 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
       </div>
       <div class="form-group">
         <label class="form-label">Type</label>
-        <select class="form-select" id="ch-type">
-          <option value="simple">Simple</option>
-          <option value="double">Double</option>
-          <option value="suite">Suite</option>
-        </select>
+        <div style="display:flex;gap:8px;">
+          <button type="button" id="ch-type-simple" onclick="selChType('simple')"
+            style="flex:1;padding:8px;border-radius:8px;border:1px solid #EDE8DC;background:#FDFCFA;color:#1A1714;font-size:12px;font-family:inherit;cursor:pointer;">
+            Simple
+          </button>
+          <button type="button" id="ch-type-double" onclick="selChType('double')"
+            style="flex:1;padding:8px;border-radius:8px;border:2px solid var(--anthracite);background:var(--anthracite);color:#fff;font-size:12px;font-family:inherit;cursor:pointer;">
+            Double
+          </button>
+          <button type="button" id="ch-type-suite" onclick="selChType('suite')"
+            style="flex:1;padding:8px;border-radius:8px;border:1px solid #EDE8DC;background:#FDFCFA;color:#1A1714;font-size:12px;font-family:inherit;cursor:pointer;">
+            Suite
+          </button>
+        </div>
+        <input type="hidden" id="ch-type" value="double">
       </div>
     </div>
     <div class="modal-actions">
@@ -248,6 +258,54 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
   </div>
 </div>
 
+<!-- Modal génération rapide -->
+<div class="modal-overlay" id="modal-generation" onclick="closeModal('modal-generation',event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚡ Génération rapide des chambres</div>
+    <div class="modal-sub" style="margin-bottom:16px;">Créez toutes vos chambres en une seule action.</div>
+
+    <div class="form-group">
+      <label class="form-label">Nombre d'étages</label>
+      <input class="form-input" type="number" id="gen-etages" placeholder="Ex: 5" min="1" max="20" value="3">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Chambres par étage</label>
+      <input class="form-input" type="number" id="gen-par-etage" placeholder="Ex: 20" min="1" max="50" value="10">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Numéro de départ (1er étage)</label>
+      <input class="form-input" type="number" id="gen-debut" placeholder="Ex: 101" value="101">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Type par défaut</label>
+      <div style="display:flex;gap:8px;">
+        <button type="button" id="gen-type-double" onclick="selGenType('double')"
+          style="flex:1;padding:9px;border-radius:8px;border:2px solid var(--anthracite);background:var(--anthracite);color:#fff;font-size:13px;font-family:inherit;cursor:pointer;">
+          Double
+        </button>
+        <button type="button" id="gen-type-simple" onclick="selGenType('simple')"
+          style="flex:1;padding:9px;border-radius:8px;border:1px solid #EDE8DC;background:#FDFCFA;color:#1A1714;font-size:13px;font-family:inherit;cursor:pointer;">
+          Simple
+        </button>
+        <button type="button" id="gen-type-suite" onclick="selGenType('suite')"
+          style="flex:1;padding:9px;border-radius:8px;border:1px solid #EDE8DC;background:#FDFCFA;color:#1A1714;font-size:13px;font-family:inherit;cursor:pointer;">
+          Suite
+        </button>
+      </div>
+      <input type="hidden" id="gen-type" value="double">
+    </div>
+
+    <!-- Aperçu -->
+    <div id="gen-apercu" style="background:#F5EDD9;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#5C5347;display:none;"></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modal-generation')">Annuler</button>
+      <button class="modal-btn modal-btn-primary" onclick="genererChambres()">⚡ Générer</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -285,6 +343,7 @@ function initApp() {
   watchChambres(profil.hotel_id, d => { chambresData = d||{}; renderTab(); });
   watchZones(profil.hotel_id,   d => { zonesData   = d||{}; renderTab(); });
   watchStaff(profil.hotel_id,   d => { staffData   = d||{}; renderTab(); });
+  setTimeout(() => chargerLogoExistant(), 300);
 }
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
@@ -315,6 +374,23 @@ function renderHotel() {
       </div>
     </div>
     <div class="section-body">
+      <!-- Logo -->
+      <div class="form-group">
+        <label class="form-label">Logo de l'hôtel</label>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;">
+          <div id="logo-preview" style="width:64px;height:64px;border-radius:10px;border:1px solid var(--cb);
+            background:#F5F0F0;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
+            <span style="font-size:24px;">🏨</span>
+          </div>
+          <div style="flex:1;">
+            <label for="logo-input" class="btn btn-outline" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin-bottom:6px;">
+              📁 Choisir un logo
+            </label>
+            <input type="file" id="logo-input" accept="image/*" style="display:none;" onchange="previewLogo(event)">
+            <div style="font-size:11px;color:var(--tl);">PNG, JPG · Recommandé : 200×200px</div>
+          </div>
+        </div>
+      </div>
       <div class="form-group">
         <label class="form-label">Nom de l'hôtel</label>
         <input class="form-input" id="hotel-nom-input" value="${profil.hotel_nom||''}" placeholder="Nom de l'hôtel">
@@ -401,7 +477,10 @@ function renderChambres() {
     </div>`).join('');
 
   return `
-    <button class="btn btn-gold btn-full" onclick="ouvrirModalChambre()">+ Ajouter une chambre</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+      <button class="btn btn-gold btn-full" onclick="ouvrirModalChambre()">+ Ajouter une chambre</button>
+      <button class="btn btn-primary btn-full" onclick="ouvrirGenerationRapide()">⚡ Génération rapide</button>
+    </div>
     ${etagesHTML || '<div style="text-align:center;padding:32px;color:var(--tl);">Aucune chambre configurée</div>'}`;
 }
 
@@ -482,18 +561,153 @@ function renderUsers() {
 
 const TYPES = { simple:'Simple', double:'Double', suite:'Suite' };
 
+// ── Logo ──────────────────────────────────────────────────────────────────────
+let logoBase64 = null;
+
+window.previewLogo = (event) => {
+  const file = event.target.files[0];
+  if(!file) return;
+  if(file.size > 500000) { showToast('⚠ Logo trop lourd — max 500KB'); return; }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    logoBase64 = e.target.result;
+    const preview = document.getElementById('logo-preview');
+    preview.innerHTML = `<img src="${logoBase64}" style="width:100%;height:100%;object-fit:cover;">`;
+  };
+  reader.readAsDataURL(file);
+};
+
+function chargerLogoExistant() {
+  const logo = profil.hotel_logo;
+  if(logo) {
+    const preview = document.getElementById('logo-preview');
+    if(preview) preview.innerHTML = `<img src="${logo}" style="width:100%;height:100%;object-fit:cover;">`;
+  }
+}
+
 // ── Actions Hôtel ─────────────────────────────────────────────────────────────
 window.sauvegarderHotel = async () => {
   const nom = document.getElementById('hotel-nom-input').value.trim();
   if(!nom) { showToast('⚠ Entrez le nom de l\'hôtel'); return; }
-  // Mettre à jour le nom dans Firebase
-  await update(ref(db, `hotels/${profil.hotel_id}`), { nom });
-  // Mettre à jour le profil de l'utilisateur connecté
-  await update(ref(db, `users/${profil.uid}`), { hotel_nom: nom });
-  // Mettre à jour l'affichage immédiatement
-  profil.hotel_nom = nom;
+
+  const updateData = { nom };
+  if(logoBase64) updateData.logo = logoBase64;
+
+  await update(ref(db, `hotels/${profil.hotel_id}`), updateData);
+  await update(ref(db, `users/${profil.uid}`), {
+    hotel_nom: nom,
+    ...(logoBase64 ? { hotel_logo: logoBase64 } : {})
+  });
+
+  profil.hotel_nom  = nom;
+  if(logoBase64) profil.hotel_logo = logoBase64;
   document.getElementById('hotel-name').textContent = nom;
-  showToast('✅ Nom mis à jour : ' + nom);
+  showToast('✅ Hôtel mis à jour');
+};
+
+// ── Génération rapide chambres ────────────────────────────────────────────────
+window.selGenType = (type) => {
+  document.getElementById('gen-type').value = type;
+  ['double','simple','suite'].forEach(t => {
+    const btn = document.getElementById(`gen-type-${t}`);
+    if(t === type) {
+      btn.style.background = 'var(--anthracite)';
+      btn.style.borderColor = 'var(--anthracite)';
+      btn.style.color = '#fff';
+      btn.style.borderWidth = '2px';
+    } else {
+      btn.style.background = '#FDFCFA';
+      btn.style.borderColor = '#EDE8DC';
+      btn.style.color = '#1A1714';
+      btn.style.borderWidth = '1px';
+    }
+  });
+  updateApercu();
+};
+
+window.selChType = (type) => {
+  document.getElementById('ch-type').value = type;
+  ['simple','double','suite'].forEach(t => {
+    const btn = document.getElementById(`ch-type-${t}`);
+    if(t === type) {
+      btn.style.background = 'var(--anthracite)';
+      btn.style.borderColor = 'var(--anthracite)';
+      btn.style.color = '#fff';
+      btn.style.borderWidth = '2px';
+    } else {
+      btn.style.background = '#FDFCFA';
+      btn.style.borderColor = '#EDE8DC';
+      btn.style.color = '#1A1714';
+      btn.style.borderWidth = '1px';
+    }
+  });
+};
+window.ouvrirGenerationRapide = () => {
+  updateApercu();
+  document.getElementById('modal-generation').classList.add('open');
+};
+
+function updateApercu() {
+  const etages    = parseInt(document.getElementById('gen-etages')?.value) || 0;
+  const parEtage  = parseInt(document.getElementById('gen-par-etage')?.value) || 0;
+  const debut     = parseInt(document.getElementById('gen-debut')?.value) || 101;
+  const total     = etages * parEtage;
+  const apercu    = document.getElementById('gen-apercu');
+  if(!apercu) return;
+  if(etages && parEtage) {
+    const suffixe = debut % 100;
+    const exemples = [];
+    for(let e = 1; e <= Math.min(etages, 3); e++) {
+      const first = e * 100 + suffixe;
+      const last  = first + parEtage - 1;
+      exemples.push(`Étage ${e} : ${first} → ${last}`);
+    }
+    if(etages > 3) exemples.push(`... jusqu'à l'étage ${etages}`);
+    apercu.innerHTML = `<strong>${total} chambres seront créées</strong><br>${exemples.join('<br>')}`;
+    apercu.style.display = 'block';
+  } else {
+    apercu.style.display = 'none';
+  }
+}
+
+// Mettre à jour l'aperçu en temps réel
+document.addEventListener('input', e => {
+  if(['gen-etages','gen-par-etage','gen-debut'].includes(e.target.id)) updateApercu();
+});
+
+window.genererChambres = async () => {
+  const etages   = parseInt(document.getElementById('gen-etages').value);
+  const parEtage = parseInt(document.getElementById('gen-par-etage').value);
+  const debut    = parseInt(document.getElementById('gen-debut').value);
+  const type     = document.getElementById('gen-type').value;
+
+  if(!etages || !parEtage || !debut) { showToast('⚠ Remplissez tous les champs'); return; }
+  if(etages * parEtage > 300) { showToast('⚠ Maximum 300 chambres à la fois'); return; }
+
+  const total = etages * parEtage;
+  showToast(`⚡ Génération de ${total} chambres...`);
+
+  // Convention hôtelière : étage × 100 + numéro (ex: étage 2 → 201, 202...)
+  // Le numéro de départ définit le suffixe (ex: 101 → suffixe 01)
+  const suffixeDebut = debut % 100; // ex: 101 → 1
+  const batch = {};
+  for(let e = 1; e <= etages; e++) {
+    for(let n = 0; n < parEtage; n++) {
+      const num = e * 100 + suffixeDebut + n;
+      batch[num] = {
+        num, etage: e, type,
+        statut: 'sale',
+        assignee_id: '', assignee_nom: '', observation: ''
+      };
+    }
+  }
+
+  // Écrire toutes les chambres en une fois
+  const { ref: fbRef, set: fbSet } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+  await fbSet(fbRef(db, `hotels/${profil.hotel_id}/chambres`), batch);
+
+  closeModal('modal-generation');
+  showToast(`✅ ${total} chambres générées !`);
 };
 
 // ── Actions Chambres ──────────────────────────────────────────────────────────
