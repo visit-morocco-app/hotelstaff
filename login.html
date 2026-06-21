@@ -54,6 +54,9 @@ import { login, onAuth, getUserProfile, ROLE_PAGES } from './firebase.js';
 onAuth(async (user) => {
   document.getElementById('loading').style.display = 'none';
   if (user) {
+    if (user.email === 'amine.assou.pro@gmail.com') {
+      window.location.href = 'admin.html'; return;
+    }
     const profil = await getUserProfile(user.uid);
     if (profil && ROLE_PAGES[profil.role]) {
       window.location.href = ROLE_PAGES[profil.role];
@@ -82,6 +85,8 @@ document.getElementById('btn-login').addEventListener('click', async () => {
     const profil = await getUserProfile(cred.user.uid);
     if (profil && ROLE_PAGES[profil.role]) {
       window.location.href = ROLE_PAGES[profil.role];
+    } else if (cred.user.email === 'amine.assou.pro@gmail.com') {
+      window.location.href = 'admin.html';
     } else {
       errEl.textContent = 'Profil introuvable. Contactez votre administrateur.';
       errEl.classList.add('show');

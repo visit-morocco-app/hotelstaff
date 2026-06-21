@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotelStaff — Admin</title>
+<link rel="stylesheet" href="style.css">
+<style>
+:root {
+  --purple:#3D2C5E; --gold:#C4853A; --gold-light:#F5EDD9;
+  --cream:#FDFCFA; --cb:#EDE8DC; --tm:#5C5347; --tl:#9C9080;
+  --green:#2D6A3F; --green-light:#EAF3E8;
+  --red:#C0504D; --red-light:#FAEAEA;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#F2F2F0; color:#1A1714; min-height:100vh; }
+
+.header { background:var(--purple); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; }
+.page-title { font-size:16px; font-weight:600; color:#FAF8F3; }
+.page-sub   { font-size:11px; color:var(--gold); margin-top:1px; }
+.avatar { width:36px; height:36px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:var(--purple); cursor:pointer; }
+
+.content { max-width:700px; margin:24px auto; padding:0 16px 40px; display:flex; flex-direction:column; gap:16px; }
+
+.card { background:#fff; border-radius:12px; border:0.5px solid var(--cb); overflow:hidden; }
+.card-header { padding:14px 18px; border-bottom:0.5px solid var(--cb); background:var(--cream); }
+.card-title { font-size:14px; font-weight:600; color:#1A1714; }
+.card-sub   { font-size:12px; color:var(--tl); margin-top:2px; }
+.card-body  { padding:18px; display:flex; flex-direction:column; gap:14px; }
+
+.form-label { font-size:12px; font-weight:500; color:var(--tm); margin-bottom:5px; display:block; }
+.form-input { width:100%; padding:11px 13px; border:0.5px solid var(--cb); border-radius:8px; font-size:14px; background:var(--cream); outline:none; font-family:inherit; }
+.form-input:focus { border-color:var(--purple); }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.form-group { display:flex; flex-direction:column; }
+
+.btn { padding:11px 18px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; border:none; transition:all 0.15s; display:inline-flex; align-items:center; gap:6px; justify-content:center; }
+.btn-primary { background:var(--purple); color:#fff; width:100%; }
+.btn-primary:hover { background:#4E3A75; }
+.btn-primary:disabled { opacity:0.5; cursor:not-allowed; }
+.btn-danger  { background:var(--red-light); color:var(--red); }
+.btn-outline { background:#fff; color:var(--tm); border:0.5px solid var(--cb); }
+
+.hotel-row { display:flex; align-items:center; gap:12px; padding:12px 14px; border-bottom:0.5px solid var(--cb); }
+.hotel-row:last-child { border-bottom:none; }
+.hotel-icon { width:40px; height:40px; border-radius:8px; background:var(--gold-light); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.hotel-info { flex:1; }
+.hotel-nom  { font-size:14px; font-weight:600; color:#1A1714; }
+.hotel-meta { font-size:11px; color:var(--tl); margin-top:2px; }
+.badge-actif { font-size:10px; padding:3px 8px; border-radius:20px; background:var(--green-light); color:var(--green); font-weight:500; }
+
+.stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.stat-box { background:var(--cream); border-radius:8px; padding:12px; border:0.5px solid var(--cb); text-align:center; }
+.stat-num { font-size:24px; font-weight:700; color:var(--purple); }
+.stat-lbl { font-size:11px; color:var(--tl); margin-top:2px; }
+
+.guard { position:fixed; inset:0; background:#fff; display:none; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center; z-index:300; }
+.guard.show { display:flex; }
+
+.toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); background:#1A1714; color:#fff; padding:10px 22px; border-radius:20px; font-size:13px; font-weight:500; z-index:500; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.toast.show { opacity:1; }
+
+.step-badge { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:var(--purple); color:#fff; font-size:11px; font-weight:700; margin-right:6px; flex-shrink:0; }
+
+.progress-bar-wrap { height:6px; background:var(--cb); border-radius:3px; overflow:hidden; margin-top:6px; }
+.progress-bar-fill { height:100%; background:var(--green); border-radius:3px; transition:width 0.4s; }
+</style>
+</head>
+<body>
+
+<div class="guard" id="guard-screen">
+  <div style="font-size:48px;margin-bottom:16px;">🔒</div>
+  <div style="font-size:20px;font-weight:600;margin-bottom:8px;">Accès refusé</div>
+  <div style="font-size:14px;color:var(--tl);margin-bottom:24px;">Cet espace est réservé à l'administrateur HotelStaff.</div>
+  <button class="btn btn-outline" onclick="window.location.href='login.html'">Retour connexion</button>
+</div>
+
+<div id="app" style="display:none;">
+
+  <div class="header">
+    <div>
+      <div class="page-title">🛠 Admin HotelStaff</div>
+      <div class="page-sub">Gestion des hôtels clients</div>
+    </div>
+    <div class="avatar" onclick="doLogout()">A</div>
+  </div>
+
+  <div class="content">
+
+    <!-- Stats globales -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Vue d'ensemble</div>
+      </div>
+      <div class="card-body">
+        <div class="stat-grid">
+          <div class="stat-box">
+            <div class="stat-num" id="stat-hotels">—</div>
+            <div class="stat-lbl">Hôtels actifs</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num" id="stat-users">—</div>
+            <div class="stat-lbl">Utilisateurs</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num" id="stat-chambres">—</div>
+            <div class="stat-lbl">Chambres totales</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Créer un nouvel hôtel -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">✨ Créer un nouvel hôtel</div>
+        <div class="card-sub">L'hôtel sera opérationnel immédiatement après création</div>
+      </div>
+      <div class="card-body">
+
+        <!-- Étape 1 : Infos hôtel -->
+        <div>
+          <div style="display:flex;align-items:center;margin-bottom:12px;">
+            <span class="step-badge">1</span>
+            <span style="font-size:13px;font-weight:600;">Informations de l'hôtel</span>
+          </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label class="form-label">Nom de l'hôtel</label>
+            <input class="form-input" id="new-hotel-nom" placeholder="Ex: Hôtel La Mamounia">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">ID unique (sans espaces)</label>
+              <input class="form-input" id="new-hotel-id" placeholder="Ex: hotel_mamounia">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Ville</label>
+              <input class="form-input" id="new-hotel-ville" placeholder="Ex: Marrakech">
+            </div>
+          </div>
+        </div>
+
+        <!-- Étape 2 : Compte directeur -->
+        <div style="border-top:0.5px solid var(--cb);padding-top:14px;">
+          <div style="display:flex;align-items:center;margin-bottom:12px;">
+            <span class="step-badge">2</span>
+            <span style="font-size:13px;font-weight:600;">Compte directeur</span>
+          </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label class="form-label">Nom du directeur</label>
+            <input class="form-input" id="new-dir-nom" placeholder="Ex: M. Alami">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Email directeur</label>
+              <input class="form-input" type="email" id="new-dir-email" placeholder="directeur@hotel.ma">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mot de passe provisoire</label>
+              <input class="form-input" type="password" id="new-dir-pass" placeholder="Min. 6 caractères" value="Hotel2024!">
+            </div>
+          </div>
+        </div>
+
+        <!-- Étape 3 : Génération chambres -->
+        <div style="border-top:0.5px solid var(--cb);padding-top:14px;">
+          <div style="display:flex;align-items:center;margin-bottom:12px;">
+            <span class="step-badge">3</span>
+            <span style="font-size:13px;font-weight:600;">Chambres (optionnel)</span>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Nombre d'étages</label>
+              <input class="form-input" type="number" id="new-etages" placeholder="Ex: 5" value="3">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Chambres par étage</label>
+              <input class="form-input" type="number" id="new-par-etage" placeholder="Ex: 20" value="10">
+            </div>
+          </div>
+          <div id="new-apercu" style="font-size:12px;color:var(--tl);margin-top:6px;"></div>
+        </div>
+
+        <!-- Barre de progression création -->
+        <div id="creation-progress" style="display:none;">
+          <div style="font-size:13px;color:var(--tm);" id="creation-step">Création en cours...</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="creation-bar" style="width:0%;"></div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="btn-creer" onclick="creerHotel()">
+          ✨ Créer l'hôtel
+        </button>
+      </div>
+    </div>
+
+    <!-- Liste hôtels existants -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Hôtels clients</div>
+        <div class="card-sub" id="hotels-count">Chargement...</div>
+      </div>
+      <div id="hotels-list">
+        <div style="padding:24px;text-align:center;color:var(--tl);">Chargement...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { onAuth, getUserProfile, logout, db } from './firebase.js';
+import { ref, get, set, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getAuth, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+// Email admin autorisé
+const ADMIN_EMAIL = 'amine.assou.pro@gmail.com';
+
+let profil = null;
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+onAuth(async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  if (user.email !== ADMIN_EMAIL) {
+    document.getElementById('guard-screen').classList.add('show'); return;
+  }
+  profil = await getUserProfile(user.uid) || { nom: 'Admin', uid: user.uid };
+  document.getElementById('app').style.display = 'block';
+  loadStats();
+  loadHotels();
+  initApercu();
+});
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+async function loadStats() {
+  const hotelsSnap = await get(ref(db, 'hotels'));
+  const usersSnap  = await get(ref(db, 'users'));
+  const hotels = hotelsSnap.val() || {};
+  const users  = usersSnap.val()  || {};
+
+  document.getElementById('stat-hotels').textContent  = Object.keys(hotels).length;
+  document.getElementById('stat-users').textContent   = Object.keys(users).length;
+
+  let totalChambres = 0;
+  Object.values(hotels).forEach(h => {
+    totalChambres += Object.keys(h.chambres || {}).length;
+  });
+  document.getElementById('stat-chambres').textContent = totalChambres;
+}
+
+// ── Liste hôtels ──────────────────────────────────────────────────────────────
+async function loadHotels() {
+  const snap = await get(ref(db, 'hotels'));
+  const hotels = snap.val() || {};
+  const list = document.getElementById('hotels-list');
+  const keys = Object.keys(hotels);
+
+  document.getElementById('hotels-count').textContent = `${keys.length} hôtel${keys.length>1?'s':''} configuré${keys.length>1?'s':''}`;
+
+  if(!keys.length) {
+    list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--tl);">Aucun hôtel configuré</div>';
+    return;
+  }
+
+  list.innerHTML = keys.map(id => {
+    const h = hotels[id];
+    const nbChambres = Object.keys(h.chambres || {}).length;
+    const nbStaff    = Object.keys(h.staff || {}).length;
+    return `
+      <div class="hotel-row">
+        <div class="hotel-icon">🏨</div>
+        <div class="hotel-info">
+          <div class="hotel-nom">${h.nom || id}</div>
+          <div class="hotel-meta">${nbChambres} chambres · ${nbStaff} utilisateurs · ID: ${id}</div>
+        </div>
+        <span class="badge-actif">Actif</span>
+      </div>`;
+  }).join('');
+}
+
+// ── Aperçu chambres ───────────────────────────────────────────────────────────
+function initApercu() {
+  ['new-etages','new-par-etage'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', updateApercu);
+  });
+  updateApercu();
+}
+
+function updateApercu() {
+  const etages   = parseInt(document.getElementById('new-etages')?.value) || 0;
+  const parEtage = parseInt(document.getElementById('new-par-etage')?.value) || 0;
+  const apercu   = document.getElementById('new-apercu');
+  if(etages && parEtage) {
+    apercu.textContent = `→ ${etages * parEtage} chambres seront créées (${etages} étages × ${parEtage} chambres)`;
+  } else {
+    apercu.textContent = '';
+  }
+}
+
+// ── Créer hôtel ───────────────────────────────────────────────────────────────
+window.creerHotel = async () => {
+  const nom      = document.getElementById('new-hotel-nom').value.trim();
+  const hotelId  = document.getElementById('new-hotel-id').value.trim().replace(/\s+/g,'_').toLowerCase();
+  const ville    = document.getElementById('new-hotel-ville').value.trim();
+  const dirNom   = document.getElementById('new-dir-nom').value.trim();
+  const dirEmail = document.getElementById('new-dir-email').value.trim();
+  const dirPass  = document.getElementById('new-dir-pass').value;
+  const etages   = parseInt(document.getElementById('new-etages').value) || 0;
+  const parEtage = parseInt(document.getElementById('new-par-etage').value) || 0;
+
+  if(!nom || !hotelId || !dirNom || !dirEmail || !dirPass) {
+    showToast('⚠ Remplissez tous les champs obligatoires'); return;
+  }
+  if(dirPass.length < 6) { showToast('⚠ Mot de passe min. 6 caractères'); return; }
+
+  const btn = document.getElementById('btn-creer');
+  btn.disabled = true;
+  document.getElementById('creation-progress').style.display = 'block';
+
+  const setProgress = (pct, msg) => {
+    document.getElementById('creation-bar').style.width  = pct + '%';
+    document.getElementById('creation-step').textContent = msg;
+  };
+
+  try {
+    // Étape 1 — Créer la structure hôtel dans Firebase
+    setProgress(20, '🏨 Création de l\'hôtel...');
+    const hotelData = {
+      nom, ville: ville||'',
+      nb_etages: etages || 0,
+      staff: {}, chambres: {}, zones: {}
+    };
+    await set(ref(db, `hotels/${hotelId}`), hotelData);
+
+    // Étape 2 — Créer le compte directeur sans déconnecter l'admin
+    setProgress(40, '👤 Création du compte directeur...');
+    const firebaseConfig = {
+      apiKey:      "AIzaSyCse3b45dUFvI7weTAOogGgJhLvYAHiuUE",
+      authDomain:  "hotelstaff-prod.firebaseapp.com",
+      projectId:   "hotelstaff-prod",
+      databaseURL: "https://hotelstaff-prod-default-rtdb.europe-west1.firebasedatabase.app"
+    };
+    const app2  = initializeApp(firebaseConfig, `secondary_${Date.now()}`);
+    const auth2 = getAuth(app2);
+    const cred  = await createUserWithEmailAndPassword(auth2, dirEmail, dirPass);
+    const dirUid = cred.user.uid;
+    await signOut(auth2);
+
+    // Étape 3 — Enregistrer le profil directeur
+    setProgress(60, '📋 Enregistrement du profil...');
+    const dirProfil = {
+      nom: dirNom, email: dirEmail,
+      role: 'directeur',
+      hotel_id: hotelId,
+      hotel_nom: nom
+    };
+    await set(ref(db, `users/${dirUid}`), dirProfil);
+    await set(ref(db, `hotels/${hotelId}/staff/${dirUid}`), {
+      nom: dirNom, email: dirEmail, role: 'directeur', online: false
+    });
+
+    // Étape 4 — Générer les chambres
+    if(etages > 0 && parEtage > 0) {
+      setProgress(80, `🚪 Génération de ${etages*parEtage} chambres...`);
+      const chambres = {};
+      for(let e = 1; e <= etages; e++) {
+        for(let n = 1; n <= parEtage; n++) {
+          const num = e * 100 + n;
+          chambres[num] = { num, etage:e, type:'double', statut:'sale', assignee_id:'', assignee_nom:'', observation:'' };
+        }
+      }
+      await set(ref(db, `hotels/${hotelId}/chambres`), chambres);
+
+      // Zones par défaut
+      for(let e = 1; e <= etages; e++) {
+        await push(ref(db, `hotels/${hotelId}/zones`), {
+          nom: `Couloir étage ${e}`, type: 'couloir', etage: e, statut: 'a_faire'
+        });
+      }
+    }
+
+    setProgress(100, '✅ Hôtel créé avec succès !');
+
+    setTimeout(() => {
+      document.getElementById('creation-progress').style.display = 'none';
+      btn.disabled = false;
+      // Vider le formulaire
+      ['new-hotel-nom','new-hotel-id','new-hotel-ville','new-dir-nom','new-dir-email'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      document.getElementById('new-dir-pass').value = 'Hotel2024!';
+      loadStats();
+      loadHotels();
+      showToast(`✅ ${nom} créé ! Directeur : ${dirEmail}`);
+    }, 1000);
+
+  } catch(e) {
+    btn.disabled = false;
+    document.getElementById('creation-progress').style.display = 'none';
+    if(e.code === 'auth/email-already-in-use') showToast('⚠ Email directeur déjà utilisé');
+    else showToast('⚠ Erreur : ' + e.message);
+    console.error(e);
+  }
+};
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+window.doLogout = async () => { await logout(); window.location.href = 'login.html'; };
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
