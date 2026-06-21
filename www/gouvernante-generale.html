@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>HotelStaff — Gouvernante Générale</title>
+<link rel="stylesheet" href="style.css">
+<style>
+:root {
+  --gold:#C9A96E; --gold-light:#F5EDD9; --gold-dark:#8B6914;
+  --gd:#1B3A2D; --gm:#2D5A40;
+  --cream:#FAF8F3; --cb:#EDE8DC;
+  --tm:#5C5347; --tl:#9C9080;
+  --s-sale:#C0504D; --s-cours:#E08B14;
+  --s-prete:#2D6A3F; --s-val:#C9A96E;
+}
+
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#FDFCFA; color:#1A1714; min-height:100vh; }
+
+/* ── Header ── */
+.header { background:#3D2C5E; padding:14px 16px 0; position:sticky; top:0; z-index:100; }
+.header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.hotel-name { font-size:15px; font-weight:600; color:#FAF8F3; }
+.hotel-sub  { font-size:11px; color:var(--gold); margin-top:1px; }
+.avatar { width:36px; height:36px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:var(--gd); flex-shrink:0; cursor:pointer; }
+.user-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.user-name { font-size:13px; color:#EDE8DC; font-weight:500; }
+.user-role { font-size:11px; color:var(--gold); }
+.shift-tabs { display:flex; }
+.shift-tab { flex:1; text-align:center; padding:9px 0; font-size:13px; font-weight:500; cursor:pointer; color:rgba(255,255,255,0.4); border-bottom:2px solid transparent; transition:all 0.2s; border:none; background:none; }
+.shift-tab.active { color:var(--gold); border-bottom:2px solid var(--gold); }
+
+/* ── Date bar ── */
+.date-bar { background:#F5EDD9; padding:9px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:0.5px solid var(--cb); }
+.date-txt { font-size:12px; color:#3A6347; font-weight:500; }
+.progress-pill { font-size:11px; color:#2D5C38; background:#D4E8C8; padding:3px 10px; border-radius:20px; font-weight:500; }
+
+/* ── Content ── */
+.content { padding:12px; display:flex; flex-direction:column; gap:8px; padding-bottom:100px; }
+
+/* ── Section accordéon ── */
+.section { background:#fff; border-radius:12px; border:0.5px solid var(--cb); overflow:hidden; }
+.section-header { display:flex; align-items:center; justify-content:space-between; padding:13px 14px; cursor:pointer; user-select:none; }
+.section-icon { width:30px; height:30px; border-radius:8px; background:#F5EDD9; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:15px; }
+.section-title { font-size:14px; font-weight:600; color:#1A1714; }
+.section-sub { font-size:11px; color:var(--tl); margin-top:1px; }
+.warn-badge { font-size:11px; background:#FDF3E3; color:#8B5E14; padding:3px 8px; border-radius:20px; white-space:nowrap; }
+.ok-badge   { font-size:11px; background:#D4E8C8; color:#2D5C38; padding:3px 8px; border-radius:20px; white-space:nowrap; }
+.chevron { font-size:16px; color:var(--tl); transition:transform 0.2s; }
+.chevron.open { transform:rotate(180deg); }
+.section-body { border-top:0.5px solid var(--cb); display:none; }
+.section-body.open { display:block; }
+
+/* ── Légende ── */
+.legend { display:flex; gap:14px; flex-wrap:wrap; padding:8px 14px; border-bottom:0.5px solid var(--cb); background:#FFFFFF; }
+.leg-item { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--tl); }
+.leg-dot  { width:11px; height:11px; border-radius:50%; flex-shrink:0; }
+.ld-sale  { background:var(--s-sale); }
+.ld-cours { background:var(--s-cours); }
+.ld-prete { background:transparent; border:2.5px solid var(--s-prete); }
+.ld-val   { color:#C4853A; font-size:14px; line-height:1; }
+
+/* ── Ligne chambre ── */
+.ch-row { display:flex; align-items:center; padding:11px 14px; border-bottom:0.5px solid var(--cb); gap:10px; }
+.ch-row:last-child { border-bottom:none; }
+.ch-num  { font-size:16px; font-weight:600; color:#1A1714; width:36px; flex-shrink:0; }
+.ch-info { flex:1; }
+.ch-type { font-size:12px; color:var(--tm); }
+.ch-right { display:flex; align-items:center; gap:7px; flex-shrink:0; }
+
+/* Indicateurs statut */
+.s-dot { width:13px; height:13px; border-radius:50%; flex-shrink:0; }
+.sd-sale  { background:var(--s-sale); }
+.sd-cours { background:var(--s-cours); }
+.sd-prete { background:transparent; border:2.5px solid var(--s-prete); }
+.sd-val   { color:#C4853A; font-size:17px; line-height:1; }
+.sd-occ   { background:#888; }
+
+/* Boutons action */
+.act-btn { width:30px; height:30px; border-radius:8px; border:0.5px solid var(--cb); background:#FFFFFF; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:background 0.15s; }
+.act-btn:active { background:#EDE8DC; }
+.act-btn-val { width:30px; height:30px; border-radius:8px; border:0.5px solid var(--gd); background:var(--gd); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+
+/* ── Ligne zone ── */
+.zone-row { display:flex; align-items:center; padding:11px 14px; border-bottom:0.5px solid var(--cb); gap:10px; }
+.zone-row:last-child { border-bottom:none; }
+.zone-icon { font-size:16px; color:var(--tl); flex-shrink:0; }
+.zone-name { flex:1; font-size:13px; color:#1A1714; }
+
+/* ── Modal bottom sheet ── */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal { background:#fff; border-radius:20px 20px 0 0; padding:20px 20px 36px; width:100%; max-width:500px; transform:translateY(24px); transition:transform 0.25s; }
+.modal-overlay.open .modal { transform:translateY(0); }
+.modal-handle { width:36px; height:4px; background:var(--cb); border-radius:2px; margin:0 auto 18px; }
+.modal-title { font-size:17px; font-weight:600; margin-bottom:4px; }
+.modal-sub { font-size:13px; color:var(--tl); margin-bottom:16px; }
+.modal-section { margin-bottom:14px; }
+.modal-label { font-size:12px; color:var(--tl); margin-bottom:6px; font-weight:500; }
+.staff-list { display:flex; flex-direction:column; gap:6px; }
+.staff-item { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:8px; border:0.5px solid var(--cb); cursor:pointer; transition:background 0.15s; }
+.staff-item:active { background:#F5EDD9; }
+.staff-item.selected { border-color:var(--gd); background:#F5EDD9; }
+.staff-nom { font-size:13px; color:#1A1714; font-weight:500; }
+.staff-dispo { font-size:11px; color:var(--gm); }
+.obs-input { width:100%; padding:10px 12px; border:0.5px solid var(--cb); border-radius:8px; font-size:14px; background:#FFFFFF; outline:none; resize:none; font-family:inherit; }
+.obs-input:focus { border-color:var(--gd); }
+.modal-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
+.modal-btn { padding:12px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; border:0.5px solid var(--cb); background:#fff; color:#1A1714; text-align:center; }
+.modal-btn-primary { background:var(--gd); color:var(--gold); border-color:var(--gd); }
+.modal-btn-cancel  { color:var(--tl); }
+
+/* ── Bouton soumettre ── */
+.submit-wrap { position:fixed; bottom:0; left:0; right:0; padding:12px 16px 28px; background:#FFFFFF; border-top:0.5px solid var(--cb); z-index:99; }
+.submit-btn { width:100%; padding:14px; border-radius:12px; border:none; font-size:15px; font-weight:600; letter-spacing:0.02em; background:#C8C0B0; color:#FAF8F3; cursor:not-allowed; transition:all 0.3s; }
+.submit-btn.active { background:var(--gd); color:var(--gold); cursor:pointer; }
+.submit-note { font-size:11px; color:var(--tl); text-align:center; margin-top:6px; }
+
+/* ── Toast ── */
+.toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:#1A1714; color:#fff; padding:10px 22px; border-radius:20px; font-size:13px; font-weight:500; z-index:500; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.toast.show { opacity:1; }
+
+/* ── Guard ── */
+.guard { position:fixed; inset:0; background:#fff; display:none; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center; z-index:300; }
+.guard.show { display:flex; }
+
+/* ── Responsive tablette ── */
+@media(min-width:600px) {
+  .content { max-width:640px; margin:0 auto; }
+  .submit-wrap { max-width:640px; margin:0 auto; left:50%; transform:translateX(-50%); border-radius:12px 12px 0 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="guard" id="guard-screen">
+  <div style="font-size:40px;margin-bottom:16px;">🔒</div>
+  <div style="font-size:18px;font-weight:600;margin-bottom:8px;">Accès refusé</div>
+  <div style="font-size:14px;color:var(--tl);margin-bottom:20px;">Vous n'avez pas les droits pour cet espace.</div>
+  <button class="modal-btn" onclick="window.location.href='login.html'">Retour connexion</button>
+</div>
+
+<div id="app" style="display:none">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;">
+        <div id="hotel-logo-wrap" style="display:none;width:28px;height:28px;border-radius:6px;overflow:hidden;flex-shrink:0;"><img id="hotel-logo-img" src="" style="width:100%;height:100%;object-fit:cover;"></div>
+        <div class="hotel-name" id="hotel-name">Hôtel</div></div>
+        <div class="hotel-sub">Tableau de bord</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button onclick="window.location.href='parametrage.html'" style="background:rgba(255,255,255,0.15);border:none;color:#FAF8F3;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer;">⚙️</button>
+        <div class="avatar" id="avatar-initials" onclick="doLogout()">MF</div>
+      </div>
+    </div>
+    <div class="user-row">
+      <div>
+        <div class="user-name" id="user-nom">—</div>
+        <div class="user-role">Gouvernante Générale</div>
+      </div>
+    </div>
+    <div class="shift-tabs">
+      <button class="shift-tab active" id="tab-matin" onclick="setShift('matin')">☀ Shift matin</button>
+      <button class="shift-tab" id="tab-soir" onclick="setShift('soir')">☾ Shift soir</button>
+    </div>
+  </div>
+
+  <!-- Date bar -->
+  <div class="date-bar">
+    <span class="date-txt" id="date-display">—</span>
+    <span class="progress-pill" id="progress-label">—</span>
+  </div>
+
+  <!-- Contenu -->
+  <div class="content">
+
+    <!-- Section chambres -->
+    <!-- Légende unique en haut -->
+    <div style="background:#fff;border-radius:12px;border:0.5px solid var(--cb);padding:10px 14px;display:flex;gap:14px;flex-wrap:wrap;">
+      <div class="leg-item"><div class="leg-dot ld-sale"></div>Sale</div>
+      <div class="leg-item"><div class="leg-dot ld-cours"></div>En cours</div>
+      <div class="leg-item"><div class="leg-dot ld-prete"></div>Prête</div>
+      <div class="leg-item"><span class="ld-val">★</span>Validée</div>
+      <div class="leg-item"><span style="font-size:13px;">⚠️</span>Incident</div>
+    </div>
+
+    <!-- Sections par étage (générées dynamiquement) -->
+    <div id="etages-sections"></div>
+
+    <!-- Zones communes -->
+    <div class="section" id="section-zones">
+      <div class="section-header" onclick="toggleSection('zones')">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="section-icon">🏢</div>
+          <div>
+            <div class="section-title">Zones communes</div>
+            <div class="section-sub" id="sub-zones">—</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="badge-zones" class="warn-badge">—</span>
+          <span class="chevron" id="chev-zones">▾</span>
+        </div>
+      </div>
+      <div class="section-body" id="body-zones">
+        <div id="zones-list"></div>
+      </div>
+    </div>
+
+    <!-- Incidents (retards + problèmes fusionnés) -->
+    <div class="section" id="section-incidents">
+      <div class="section-header" onclick="toggleSection('incidents')">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="section-icon">⚠️</div>
+          <div>
+            <div class="section-title">Incidents</div>
+            <div class="section-sub" id="sub-incidents">—</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="badge-incidents" class="warn-badge">—</span>
+          <span class="chevron" id="chev-incidents">▾</span>
+        </div>
+      </div>
+      <div class="section-body" id="body-incidents">
+        <div id="incidents-list-gg"></div>
+      </div>
+    </div>
+
+    <!-- Équipe étages -->
+    <div class="section" id="section-equipe">
+      <div class="section-header" onclick="toggleSection('equipe')">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="section-icon">👔</div>
+          <div>
+            <div class="section-title">Équipe étages</div>
+            <div class="section-sub" id="sub-equipe">—</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="badge-equipe" class="ok-badge">—</span>
+          <span class="chevron" id="chev-equipe">▾</span>
+        </div>
+      </div>
+      <div class="section-body" id="body-equipe">
+        <div id="equipe-list"></div>
+      </div>
+    </div>
+
+    <!-- Sections cachées (nécessaires pour les fonctions existantes) -->
+    <div style="display:none;">
+      <div id="body-ralentissements"><div id="ralentissements-list"></div></div>
+      <div id="body-reappro"><div id="reappro-list"></div></div>
+      <div id="sub-chambres"></div>
+      <div id="badge-chambres"></div>
+      <div id="chev-chambres"></div>
+      <div id="sub-ralentissements"></div>
+      <div id="badge-ralentissements"></div>
+      <div id="chev-ralentissements"></div>
+      <div id="sub-reappro"></div>
+      <div id="badge-reappro"></div>
+      <div id="chev-reappro"></div>
+      <div id="progress-label"></div>
+    </div>
+
+  </div>
+
+  <!-- Bouton soumettre -->
+  <div class="submit-wrap">
+    <button class="submit-btn" id="submit-btn" onclick="soumettreShift()">Soumettre le shift</button>
+    <div class="submit-note" id="submit-note">En attente de validation</div>
+  </div>
+
+</div>
+
+<!-- Modal modifier chambre -->
+<div class="modal-overlay" id="modal-chambre" onclick="closeModal('modal-chambre', event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-ch-title">Chambre 101</div>
+    <div class="modal-sub" id="modal-ch-sub">Double · Étage 1</div>
+
+    <div class="modal-section">
+      <div class="modal-label">Assigner à</div>
+      <div class="staff-list" id="staff-list"></div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-label">Historique observations</div>
+      <textarea class="obs-input" id="obs-input" rows="3"
+        style="background:#F5F5F5;color:#9C9080;cursor:not-allowed;resize:none;"
+        readonly placeholder="Aucune observation"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modal-chambre')">Annuler</button>
+      <button class="modal-btn modal-btn-primary" onclick="sauvegarderChambre()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { onAuth, getUserProfile, logout,
+         watchChambres, updateChambre,
+         watchZones, updateZone,
+         watchStaff, ouvrirShift, cloturerShift,
+         watchReappro, updateReappro,
+         watchRalentissements, updateRalentissement,
+         watchIncidents } from './firebase.js';
+
+let profil = null;
+let reapproData = {};
+let incidentsData = {};
+let ralentissementsData = {};
+let shiftActif = 'matin';
+let chambresData = {};
+let zonesData = {};
+let staffData = {};
+let chambreSelectee = null;
+let staffSelectionne = null;
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+onAuth(async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  profil = await getUserProfile(user.uid);
+  if (!profil || profil.role !== 'gouv_generale') {
+    document.getElementById('guard-screen').classList.add('show'); return;
+  }
+  initApp();
+});
+
+function initApp() {
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('hotel-name').textContent = profil.hotel_nom || 'Hôtel';
+  // Afficher le logo si disponible
+  if(profil.hotel_logo) {
+    const wrap = document.getElementById('hotel-logo-wrap');
+    const img  = document.getElementById('hotel-logo-img');
+    if(wrap && img) { img.src = profil.hotel_logo; wrap.style.display = 'block'; }
+  }
+  document.getElementById('user-nom').textContent = profil.nom || '';
+  const initiales = (profil.nom || 'GG').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('avatar-initials').textContent = initiales;
+  afficherDate();
+  watchChambres(profil.hotel_id, data => { chambresData = data || {}; renderChambres(); updateSubmit(); });
+  watchZones(profil.hotel_id,   data => { zonesData   = data || {}; renderZones();   updateSubmit(); });
+  watchStaff(profil.hotel_id,   data => { staffData   = data || {}; renderEquipe(); });
+  watchReappro(profil.hotel_id, data => { reapproData = data || {}; renderReappro(); });
+  watchRalentissements(profil.hotel_id, data => { ralentissementsData = data || {}; renderRalentissements(); });
+  watchIncidents(profil.hotel_id, data => { incidentsData = data || {}; renderChambres(); });
+}
+
+// ── Date ──────────────────────────────────────────────────────────────────────
+function afficherDate() {
+  const d = new Date();
+  const opts = { weekday:'long', day:'numeric', month:'long', year:'numeric' };
+  const str = d.toLocaleDateString('fr-FR', opts);
+  document.getElementById('date-display').textContent = str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+// ── Shift ─────────────────────────────────────────────────────────────────────
+window.setShift = (s) => {
+  shiftActif = s;
+  document.getElementById('tab-matin').classList.toggle('active', s === 'matin');
+  document.getElementById('tab-soir').classList.toggle('active',  s === 'soir');
+  showToast(s === 'matin' ? '☀ Shift matin sélectionné' : '☾ Shift soir sélectionné');
+};
+
+// ── Render chambres ───────────────────────────────────────────────────────────
+function renderChambres() {
+  const vals = Object.entries(chambresData).map(([k,v]) => ({id:k,...v}));
+  vals.sort((a,b) => a.num - b.num);
+  const total     = vals.length;
+  const validees  = vals.filter(c => c.statut === 'validee').length;
+  const enAttente = vals.filter(c => c.statut !== 'validee' && c.statut !== 'occupee').length;
+
+  // Mettre à jour barre de progression
+  const pct = total ? Math.round(validees/total*100) : 0;
+  const progressFill = document.getElementById('progress-fill');
+  const progressPct  = document.getElementById('progress-pct');
+  const progressSub  = document.getElementById('progress-sub');
+  if(progressFill) progressFill.style.width = pct + '%';
+  if(progressPct)  progressPct.textContent  = pct + '%';
+  if(progressSub)  progressSub.textContent  = `${validees} validée${validees>1?'s':''} sur ${total}`;
+
+  // Grouper par étage
+  const parEtage = {};
+  vals.forEach(c => {
+    if(!parEtage[c.etage]) parEtage[c.etage] = [];
+    parEtage[c.etage].push(c);
+  });
+
+  const etages = Object.keys(parEtage).sort((a,b) => a-b);
+  const container = document.getElementById('etages-sections');
+  if(!container) return;
+
+  container.innerHTML = etages.map(etage => {
+    const chs = parEtage[etage];
+    const valEtage     = chs.filter(c => c.statut === 'validee').length;
+    const attenteEtage = chs.filter(c => c.statut !== 'validee' && c.statut !== 'occupee').length;
+    const badgeClass   = attenteEtage === 0 ? 'ok-badge' : 'warn-badge';
+    const badgeText    = attenteEtage === 0 ? '✓ Validé' : `${attenteEtage} en attente`;
+    const isOpen       = false; // Fermé par défaut — GG ouvre ce qu'elle veut
+    const label        = parseInt(etage) === 0 ? 'RDC' : `Étage ${String(etage).padStart(2,'0')}`;
+
+    return `
+      <div class="section">
+        <div class="section-header" onclick="toggleEtage(${etage})">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="section-icon">🚪</div>
+            <div>
+              <div class="section-title">${label}</div>
+              <div class="section-sub">${valEtage} / ${chs.length} validées</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="${badgeClass}">${badgeText}</span>
+            <span class="chevron ${isOpen ? 'open':''}" id="chev-etage-${etage}" style="display:inline-block;transform:${isOpen?'rotate(180deg)':'rotate(0deg)'};transition:transform 0.2s;">▾</span>
+          </div>
+        </div>
+        <div class="section-body ${isOpen?'open':''}" id="etage-body-${etage}" style="${isOpen?'':'display:none;'}">
+          ${chs.map(c => `
+            <div class="ch-row">
+              <div class="ch-num">${c.num}</div>
+              <div class="ch-info">
+                <div class="ch-type">${TYPES[c.type]||c.type}</div>
+                ${c.assignee_nom
+                  ? `<div style="font-size:11px;color:var(--tl);margin-top:2px;">👤 ${c.assignee_nom}</div>`
+                  : `<div style="font-size:11px;color:#C0504D;margin-top:2px;">Non assignée</div>`}
+              </div>
+              <div class="ch-right">
+                ${Object.values(incidentsData).some(i => String(i.chambre) === String(c.num) && i.statut !== 'resolu')
+                  ? `<span style="font-size:14px;" title="Incident en cours">⚠️</span>` : ''}
+                ${statutIndicateur(c.statut)}
+                ${c.statut === 'validee' || c.statut === 'occupee'
+                  ? `<div class="act-btn" onclick="ouvrirModalChambre('${c.id}')"><span style="font-size:14px;color:var(--tl);">👁</span></div>`
+                  : `<div class="act-btn" onclick="ouvrirModalChambre('${c.id}')"><span style="font-size:13px;color:var(--tl);">✏</span></div>`}
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  }).join('');
+
+  // Mettre à jour section incidents fusionnée
+  renderIncidentsGG();
+}
+
+window.toggleEtage = (etage) => {
+  const body = document.getElementById(`etage-body-${etage}`);
+  const chev = document.getElementById(`chev-etage-${etage}`);
+  if(!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  chev.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+};
+
+function renderIncidentsGG() {
+  const incidents = Object.values(incidentsData).filter(i => i.statut !== 'resolu');
+  const ralentissements = Object.values(ralentissementsData).filter(r => r.statut === 'ouvert');
+  const total = incidents.length + ralentissements.length;
+
+  const badge = document.getElementById('badge-incidents');
+  const sub   = document.getElementById('sub-incidents');
+  const list  = document.getElementById('incidents-list-gg');
+  if(!badge || !sub || !list) return;
+
+  sub.textContent   = `${total} en cours`;
+  badge.textContent = total === 0 ? 'Aucun ✓' : `${total} en cours`;
+  badge.className   = total === 0 ? 'ok-badge' : 'warn-badge';
+
+  if(!total) {
+    list.innerHTML = `<div style="padding:16px;text-align:center;font-size:13px;color:var(--tl);">✅ Aucun incident en cours</div>`;
+    return;
+  }
+
+  list.innerHTML = `
+    ${incidents.map(i => {
+      const heure = i.created_at ? new Date(i.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '—';
+      return `<div class="ch-row" style="border-left:3px solid #C0504D;">
+        <div style="font-size:20px;flex-shrink:0;">🔧</div>
+        <div class="ch-info">
+          <div style="font-size:13px;font-weight:500;color:#8B2020;">Ch. ${i.chambre} — ${i.description}</div>
+          <div style="font-size:11px;color:var(--tl);margin-top:2px;">${i.signale_par||'—'} · ${heure} · ${i.statut}</div>
+        </div>
+      </div>`;
+    }).join('')}
+    ${ralentissements.map(r => {
+      const heure = r.created_at ? new Date(r.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '—';
+      return `<div class="ch-row" style="border-left:3px solid #E08B14;">
+        <div style="font-size:20px;flex-shrink:0;">⏱</div>
+        <div class="ch-info">
+          <div style="font-size:13px;font-weight:500;color:#8B5E14;">Ch. ${r.chambre} — ${r.description}</div>
+          <div style="font-size:11px;color:var(--tl);margin-top:2px;">${r.signale_par||'—'} · ${heure}</div>
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
+const TYPES = { simple:'Simple', double:'Double', suite:'Suite' };
+
+function statutIndicateur(s) {
+  if(s === 'sale')     return `<div class="s-dot sd-sale"></div>`;
+  if(s === 'en_cours') return `<div class="s-dot sd-cours"></div>`;
+  if(s === 'prete')    return `<div class="s-dot sd-prete"></div>`;
+  if(s === 'validee')  return `<span class="sd-val">★</span>`;
+  if(s === 'occupee')  return `<div class="s-dot sd-occ"></div>`;
+  return '';
+}
+
+// ── Render zones ──────────────────────────────────────────────────────────────
+function renderZones() {
+  const vals = Object.entries(zonesData).map(([k,v]) => ({id:k,...v}));
+  const total    = vals.length;
+  const faites   = vals.filter(z => z.statut === 'fait').length;
+  const enAttente = vals.filter(z => z.statut !== 'fait').length;
+
+  document.getElementById('sub-zones').textContent = `${faites} / ${total} faites`;
+  const badge = document.getElementById('badge-zones');
+  if(enAttente === 0) { badge.textContent = 'Tout fait ✓'; badge.className = 'ok-badge'; }
+  else { badge.textContent = `${enAttente} en attente`; badge.className = 'warn-badge'; }
+
+  document.getElementById('zones-list').innerHTML = vals.map(z => `
+    <div class="zone-row">
+      <span class="zone-icon">${ZONE_ICONS[z.type]||'📍'}</span>
+      <div class="zone-name">${z.nom}</div>
+      ${z.statut === 'fait'
+        ? `<span style="color:#C4853A;font-size:16px;">★</span>`
+        : `<div class="s-dot sd-sale"></div>`}
+      
+    </div>`).join('');
+}
+
+const ZONE_ICONS = { couloir:'🏢', lingerie:'🧺', sport:'🏋', lobby:'🚪' };
+
+// ── Render ralentissements ────────────────────────────────────────────────────
+function renderRalentissements() {
+  renderIncidentsGG();
+}
+
+
+window.leverRalentissement = async (id) => {
+  await updateRalentissement(profil.hotel_id, id, {
+    statut: 'leve',
+    leve_par: profil.nom
+  });
+  showToast(`✓ Retard levé — Chambre ${ralentissementsData[id]?.chambre}`);
+};
+
+// ── Render réapprovisionnement ────────────────────────────────────────────────
+function renderReappro() {
+  const vals = Object.entries(reapproData)
+    .map(([k,v]) => ({id:k,...v}))
+    .sort((a,b) => (b.created_at||0) - (a.created_at||0));
+
+  const ouverts = vals.filter(r => r.statut === 'ouvert');
+  const traites = vals.filter(r => r.statut === 'traite');
+
+  document.getElementById('sub-reappro').textContent = `${ouverts.length} problème${ouverts.length>1?'s':''} en attente`;
+  const badge = document.getElementById('badge-reappro');
+  if(ouverts.length === 0) { badge.textContent = 'Tout traité ✓'; badge.className = 'ok-badge'; }
+  else { badge.textContent = `${ouverts.length} à traiter`; badge.className = 'warn-badge'; }
+
+  if(!vals.length) {
+    document.getElementById('reappro-list').innerHTML =
+      `<div style="padding:16px;text-align:center;font-size:13px;color:var(--tl);">Aucune demande</div>`;
+    return;
+  }
+
+  document.getElementById('reappro-list').innerHTML = `
+    ${ouverts.map(r => `
+      <div class="ch-row">
+        <div class="ch-num">${r.chambre}</div>
+        <div class="ch-info">
+          <div class="ch-type">${r.description}</div>
+          <div style="font-size:11px;color:var(--tl);margin-top:2px;">Demandé par ${r.demande_par||'—'}</div>
+        </div>
+        <div class="ch-right">
+          <div class="act-btn-val" onclick="traiterReappro('${r.id}')" title="Marquer traité">
+            <span style="color:var(--gold);font-size:14px;">✓</span>
+          </div>
+        </div>
+      </div>`).join('')}
+    ${traites.length ? `
+      <div style="padding:8px 14px;font-size:11px;color:var(--tl);font-weight:500;text-transform:uppercase;letter-spacing:0.05em;">
+        Traités (${traites.length})
+      </div>
+      ${traites.slice(0,5).map(r => `
+        <div class="ch-row" style="opacity:0.5;">
+          <div class="ch-num">${r.chambre}</div>
+          <div class="ch-info">
+            <div class="ch-type">${r.description}</div>
+          </div>
+          <span style="color:var(--gold);font-size:14px;">✓</span>
+        </div>`).join('')}` : ''}`;
+}
+
+window.traiterReappro = async (id) => {
+  await updateReappro(profil.hotel_id, id, { statut: 'traite', traite_par: profil.nom });
+  showToast(`✓ Demande traitée — Chambre ${reapproData[id]?.chambre}`);
+};
+
+// ── Render équipe étages ──────────────────────────────────────────────────────
+function renderEquipe() {
+  const equipe = [
+    { id: 'i3NVFIO6nFNa5h0sLK90Knn5lzJ2', nom: 'Mme Idrissi', etage: 1, present: true },
+  ];
+  const total    = equipe.length;
+  const presents = equipe.filter(g => g.present).length;
+  const absents  = equipe.filter(g => !g.present).length;
+
+  document.getElementById('sub-equipe').textContent = `${presents} / ${total} présente${total>1?'s':''}`;
+  const badge = document.getElementById('badge-equipe');
+  if(absents === 0) { badge.textContent = 'Toutes présentes ✓'; badge.className = 'ok-badge'; }
+  else { badge.textContent = `${absents} absente${absents>1?'s':''}`; badge.className = 'warn-badge'; }
+
+  document.getElementById('equipe-list').innerHTML = equipe.map(g => `
+    <div class="ch-row">
+      <div style="width:36px;height:36px;border-radius:50%;background:#F5EDD9;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--gd);flex-shrink:0;">
+        ${g.nom.split(' ').map(w=>w[0]).join('').slice(0,2)}
+      </div>
+      <div class="ch-info" style="margin-left:10px;">
+        <div style="font-size:13px;font-weight:500;color:#1A1714;">${g.nom}</div>
+        <div class="ch-type">Gouvernante · Étage ${g.etage}</div>
+      </div>
+      <div class="ch-right">
+        <span style="font-size:11px;padding:3px 8px;border-radius:20px;${g.present
+          ? 'background:#EAF3E8;color:#2D6A3F;'
+          : 'background:#FAEAEA;color:#8B2020;'}">
+          ${g.present ? '● Présente' : '● Absente'}
+        </span>
+        <div class="act-btn" onclick="togglePresence('${g.id}', ${g.present})">
+          <span style="font-size:13px;color:var(--tl);">✏</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+window.togglePresence = (id, present) => {
+  showToast(present ? '⚠ Gouvernante marquée absente' : '✓ Gouvernante marquée présente');
+};
+
+
+// ── Bouton soumettre ──────────────────────────────────────────────────────────
+function updateSubmit() {
+  // Périmètre shift : uniquement les chambres NON occupées (la réception gère l'occupation)
+  const chambresShift = Object.values(chambresData).filter(c => c.statut !== 'occupee');
+  const chambresOK    = chambresShift.every(c => c.statut === 'validee');
+  const zonesOK       = Object.values(zonesData).every(z => z.statut === 'fait');
+  const btn  = document.getElementById('submit-btn');
+  const note = document.getElementById('submit-note');
+
+  if(chambresOK && zonesOK) {
+    btn.classList.add('active'); btn.disabled = false;
+    note.textContent = '✅ Toutes les chambres sont prêtes — shift à soumettre';
+  } else {
+    btn.classList.remove('active'); btn.disabled = true;
+    const nbCh = chambresShift.filter(c => c.statut !== 'validee').length;
+    const nbZo = Object.values(zonesData).filter(z => z.statut !== 'fait').length;
+    const parts = [];
+    if(nbCh > 0) parts.push(`${nbCh} chambre${nbCh>1?'s':''} à valider`);
+    if(nbZo > 0) parts.push(`${nbZo} zone${nbZo>1?'s':''} à faire`);
+    note.textContent = parts.join(' · ');
+  }
+}
+
+// ── Accordéon ────────────────────────────────────────────────────────────────
+window.toggleSection = (id) => {
+  const body = document.getElementById('body-'+id);
+  const chev = document.getElementById('chev-'+id);
+  body.classList.toggle('open');
+  chev.classList.toggle('open');
+};
+
+// ── Valider chambre ───────────────────────────────────────────────────────────
+window.validerChambre = async (id) => {
+  await updateChambre(profil.hotel_id, id, { statut:'validee' });
+  showToast(`★ Chambre ${chambresData[id]?.num} validée`);
+};
+
+window.consulterChambre = (id) => {
+  const c = chambresData[id];
+  showToast(`Chambre ${c?.num} — ${TYPES[c?.type]} · Étage ${c?.etage}`);
+};
+
+// ── Modal chambre ─────────────────────────────────────────────────────────────
+window.ouvrirModalChambre = (id) => {
+  chambreSelectee = id;
+  staffSelectionne = chambresData[id]?.assignee_id || null;
+  const c = chambresData[id];
+  document.getElementById('modal-ch-title').textContent = `Chambre ${c?.num}`;
+  document.getElementById('modal-ch-sub').textContent = `${TYPES[c?.type]||''} · Étage ${c?.etage}`;
+  document.getElementById('obs-input').value = c?.observation || '';
+  const staffVals = Object.entries(staffData)
+    .map(([k,v]) => ({id:k,...v}))
+    .filter(s => ['staff','gouv_etage'].includes(s.role))
+    .sort((a,b) => {
+      // Gouvernantes d'étage en premier, puis staff
+      if(a.role === 'gouv_etage' && b.role !== 'gouv_etage') return -1;
+      if(b.role === 'gouv_etage' && a.role !== 'gouv_etage') return 1;
+      return (a.nom||'').localeCompare(b.nom||'');
+    });
+
+  const ROLE_LABEL = { gouv_etage: "Gouvernante d'étage", staff: 'Staff' };
+
+  document.getElementById('staff-list').innerHTML = staffVals.length
+    ? staffVals.map(s => `
+        <div class="staff-item ${s.id === staffSelectionne ? 'selected':''}" onclick="selStaff('${s.id}')">
+          <div>
+            <div class="staff-nom">${s.nom}</div>
+            <div class="staff-dispo">${ROLE_LABEL[s.role]||s.role}${s.etage ? ` · Étage ${s.etage}` : ''}</div>
+          </div>
+          ${s.id === staffSelectionne ? '<span style="color:var(--gd);font-weight:600;">✓</span>' : ''}
+        </div>`).join('')
+    : '<div style="font-size:13px;color:var(--tl);padding:8px 0;">Aucun staff configuré</div>';
+  document.getElementById('modal-chambre').classList.add('open');
+};
+
+window.selStaff = (id) => {
+  staffSelectionne = id;
+  document.querySelectorAll('.staff-item').forEach(el => {
+    const isSelected = el.getAttribute('onclick') === `selStaff('${id}')`;
+    el.classList.toggle('selected', isSelected);
+  });
+};
+
+window.sauvegarderChambre = async () => {
+  if(!chambreSelectee) return;
+  const obs  = document.getElementById('obs-input').value;
+  const staff = staffData[staffSelectionne];
+  await updateChambre(profil.hotel_id, chambreSelectee, {
+    assignee_id:  staffSelectionne || '',
+    assignee_nom: staff?.nom || '',
+    observation:  obs
+  });
+  closeModal('modal-chambre');
+  showToast('Chambre mise à jour ✓');
+};
+
+// ── Modal zone ────────────────────────────────────────────────────────────────
+
+
+
+
+
+
+// ── Soumettre shift ───────────────────────────────────────────────────────────
+window.soumettreShift = async () => {
+  await ouvrirShift(profil.hotel_id, {
+    shift: shiftActif,
+    gouvernante_id: profil.uid,
+    gouvernante_nom: profil.nom,
+    nb_chambres: Object.keys(chambresData).length,
+  });
+  showToast('✅ Shift soumis avec succès !');
+  setTimeout(() => { document.getElementById('submit-btn').textContent = 'Shift soumis ✓'; }, 500);
+};
+
+// ── Logout ────────────────────────────────────────────────────────────────────
+window.doLogout = async () => {
+  await logout();
+  window.location.href = 'login.html';
+};
+
+// ── Modals ────────────────────────────────────────────────────────────────────
+window.closeModal = (id, e) => {
+  if(e && e.target.id !== id) return;
+  document.getElementById(id).classList.remove('open');
+};
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>

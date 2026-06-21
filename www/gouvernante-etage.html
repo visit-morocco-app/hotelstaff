@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>HotelStaff — Gouvernante d'étage</title>
+<link rel="stylesheet" href="style.css">
+<style>
+:root {
+  --gold:#C9A96E; --gold-light:#F5EDD9; --gold-dark:#8B6914;
+  --gd:#1B3A2D; --gm:#2D5A40;
+  --cream:#FAF8F3; --cb:#EDE8DC;
+  --tm:#5C5347; --tl:#9C9080;
+  --s-sale:#C0504D; --s-cours:#E08B14; --s-prete:#2D6A3F;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#FDFCFA; color:#1A1714; min-height:100vh; }
+
+/* Header */
+.header { background:var(--gm); padding:14px 16px 12px; position:sticky; top:0; z-index:100; }
+.header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+.hotel-name { font-size:15px; font-weight:600; color:#FAF8F3; }
+.hotel-sub  { font-size:11px; color:var(--gold); margin-top:1px; }
+.avatar { width:36px; height:36px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:var(--gd); flex-shrink:0; cursor:pointer; }
+.user-name { font-size:13px; color:#EDE8DC; font-weight:500; }
+.user-role { font-size:11px; color:var(--gold); }
+
+/* Barre progression */
+.progress-wrap { background:#F5EDD9; padding:10px 16px; border-bottom:0.5px solid var(--cb); }
+.progress-top { display:flex; justify-content:space-between; margin-bottom:6px; }
+.progress-label { font-size:12px; color:#3A6347; font-weight:500; }
+.progress-pct { font-size:12px; color:var(--gm); font-weight:600; }
+.progress-bar { height:5px; background:var(--cb); border-radius:3px; overflow:hidden; }
+.progress-fill { height:100%; background:var(--gd); border-radius:3px; transition:width 0.4s; }
+.progress-sub { font-size:11px; color:var(--tl); margin-top:5px; }
+
+/* Tabs priorité */
+.tabs { display:flex; border-bottom:0.5px solid var(--cb); background:#fff; }
+.tab { flex:1; text-align:center; padding:10px 0; font-size:13px; font-weight:500; cursor:pointer; color:var(--tl); border-bottom:2px solid transparent; transition:all 0.2s; border-top:none; border-left:none; border-right:none; background:none; }
+.tab.active { color:var(--gd); border-bottom:2px solid var(--gd); }
+.tab-count { display:inline-block; background:#F5EDD9; color:var(--gold-dark); font-size:10px; padding:1px 6px; border-radius:10px; margin-left:4px; }
+.tab.active .tab-count { background:var(--gd); color:var(--gold); }
+
+/* Content */
+.content { padding:12px; display:flex; flex-direction:column; gap:8px; padding-bottom:30px; }
+
+/* Carte chambre contrôle */
+.ctrl-card { background:#fff; border-radius:12px; border:0.5px solid var(--cb); overflow:hidden; }
+.ctrl-header { display:flex; align-items:center; padding:14px; gap:12px; }
+.ctrl-num { font-size:28px; font-weight:700; color:#1A1714; width:52px; flex-shrink:0; }
+.ctrl-info { flex:1; }
+.ctrl-type { font-size:13px; color:var(--tm); }
+.ctrl-staff { font-size:12px; color:var(--tl); margin-top:2px; }
+.ctrl-obs { font-size:11px; color:var(--gold-dark); margin-top:3px; }
+.ctrl-statut { flex-shrink:0; }
+.badge { font-size:11px; padding:4px 10px; border-radius:20px; font-weight:500; white-space:nowrap; }
+.b-prete { background:#EAF3E8; color:var(--gm); border:1.5px solid var(--gm); }
+.b-sale  { background:#FAEAEA; color:#8B2020; }
+.b-cours { background:#FDF3E3; color:#8B5E14; }
+.b-val   { background:var(--gd); color:var(--gold); }
+.b-occ   { background:var(--cb); color:var(--tl); }
+
+/* Actions contrôle */
+.ctrl-actions { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; padding:0 14px 14px; }
+.ctrl-btn { padding:10px 6px; border-radius:8px; border:0.5px solid var(--cb); font-size:12px; font-weight:500; cursor:pointer; text-align:center; background:#fff; color:#1A1714; transition:all 0.15s; }
+.ctrl-btn:active { transform:scale(0.97); }
+.ctrl-btn-val  { background:var(--gd); color:var(--gold); border-color:var(--gd); }
+.ctrl-btn-ref  { background:#FAEAEA; color:#8B2020; border-color:transparent; }
+.ctrl-btn-inc  { background:#F5EDD9; color:var(--gold-dark); border-color:transparent; }
+
+/* Ligne simple pour autres chambres */
+.ch-row { display:flex; align-items:center; padding:12px 14px; border-bottom:0.5px solid var(--cb); gap:10px; background:#fff; }
+.ch-row:last-child { border-bottom:none; }
+.ch-num  { font-size:16px; font-weight:600; color:#1A1714; width:36px; flex-shrink:0; }
+.ch-info { flex:1; }
+.ch-type { font-size:12px; color:var(--tm); }
+.s-dot   { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+.sd-sale  { background:var(--s-sale); }
+.sd-cours { background:var(--s-cours); }
+.sd-occ   { background:#888; }
+.sd-val   { color:var(--gold); font-size:16px; line-height:1; }
+
+/* Section title */
+.section-title { font-size:11px; font-weight:600; color:var(--tl); text-transform:uppercase; letter-spacing:0.05em; padding:12px 4px 6px; }
+
+/* Empty state */
+.empty { text-align:center; padding:40px 20px; color:var(--tl); }
+.empty-icon { font-size:36px; margin-bottom:10px; }
+.empty-title { font-size:15px; font-weight:500; color:#1A1714; margin-bottom:4px; }
+.empty-sub { font-size:13px; }
+
+/* Modal */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal { background:#fff; border-radius:20px 20px 0 0; padding:20px 20px 36px; width:100%; max-width:500px; transform:translateY(24px); transition:transform 0.25s; }
+.modal-overlay.open .modal { transform:translateY(0); }
+.modal-handle { width:36px; height:4px; background:var(--cb); border-radius:2px; margin:0 auto 18px; }
+.modal-title { font-size:17px; font-weight:600; margin-bottom:4px; }
+.modal-sub { font-size:13px; color:var(--tl); margin-bottom:16px; }
+.modal-label { font-size:12px; color:var(--tl); margin-bottom:6px; font-weight:500; }
+.modal-input { width:100%; padding:11px 13px; border:0.5px solid var(--cb); border-radius:8px; font-size:14px; background:#FFFFFF; outline:none; resize:none; font-family:inherit; margin-bottom:12px; }
+.modal-input:focus { border-color:var(--gd); }
+.modal-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px; }
+.modal-btn { padding:12px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; border:0.5px solid var(--cb); background:#fff; color:#1A1714; text-align:center; }
+.modal-btn-primary { background:var(--gd); color:var(--gold); border-color:var(--gd); }
+.modal-btn-danger  { background:#FAEAEA; color:#8B2020; border-color:transparent; }
+.modal-btn-cancel  { color:var(--tl); }
+
+/* Guard */
+.guard { position:fixed; inset:0; background:#fff; display:none; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center; z-index:300; }
+.guard.show { display:flex; }
+
+/* Toast */
+.toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); background:#1A1714; color:#fff; padding:10px 22px; border-radius:20px; font-size:13px; font-weight:500; z-index:500; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.toast.show { opacity:1; }
+
+@media(min-width:600px) {
+  .content { max-width:640px; margin:0 auto; }
+}
+</style>
+</head>
+<body>
+
+<div class="guard" id="guard-screen">
+  <div style="font-size:40px;margin-bottom:16px;">🔒</div>
+  <div style="font-size:18px;font-weight:600;margin-bottom:8px;">Accès refusé</div>
+  <div style="font-size:14px;color:var(--tl);margin-bottom:20px;">Vous n'avez pas les droits pour cet espace.</div>
+  <button class="modal-btn" onclick="window.location.href='login.html'">Retour connexion</button>
+</div>
+
+<div id="app" style="display:none">
+
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;">
+        <div id="hotel-logo-wrap" style="display:none;width:28px;height:28px;border-radius:6px;overflow:hidden;flex-shrink:0;"><img id="hotel-logo-img" src="" style="width:100%;height:100%;object-fit:cover;"></div>
+        <div class="hotel-name" id="hotel-name">Hôtel</div></div>
+        <div class="hotel-sub">Contrôle qualité</div>
+      </div>
+      <div class="avatar" id="avatar" onclick="doLogout()">GE</div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div class="user-name" id="user-nom">—</div>
+        <div class="user-role" id="user-etage">Gouvernante d'étage</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barre progression -->
+  <div class="progress-wrap">
+    <div class="progress-top">
+      <span class="progress-label" id="prog-label">Mes chambres</span>
+      <span class="progress-pct" id="prog-pct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="progress-sub" id="prog-sub">—</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" id="tab-controle" onclick="setTab('controle')">
+      À contrôler <span class="tab-count" id="count-controle">0</span>
+    </button>
+    <button class="tab" id="tab-toutes" onclick="setTab('toutes')">
+      Nettoyage <span class="tab-count" id="count-toutes">0</span>
+    </button>
+    <button class="tab" id="tab-problemes" onclick="setTab('problemes')">
+      ⚠️ <span class="tab-count" id="count-problemes">0</span>
+    </button>
+    <button class="tab" id="tab-zones" onclick="setTab('zones')">
+      Zones <span class="tab-count" id="count-zones">0</span>
+    </button>
+  </div>
+
+  <div class="content" id="content"></div>
+
+</div>
+
+<!-- Modal refus -->
+<div class="modal-overlay" id="modal-refus" onclick="closeModal('modal-refus', event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-refus-title">Refuser la chambre</div>
+    <div class="modal-sub">La chambre sera remise en "En cours" avec une note pour le staff.</div>
+    <div class="modal-label">Motif du refus</div>
+    <textarea class="modal-input" id="refus-note" rows="3" placeholder="Ex: Salle de bain non nettoyée, poussière sous le lit…"></textarea>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modal-refus')">Annuler</button>
+      <button class="modal-btn modal-btn-danger" onclick="confirmerRefus()">Refuser</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal incident -->
+<div class="modal-overlay" id="modal-incident" onclick="closeModal('modal-incident', event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-inc-title">Signaler un incident</div>
+    <div class="modal-sub">L'incident sera transmis à la maintenance.</div>
+    <div class="modal-label">Description</div>
+    <textarea class="modal-input" id="inc-desc" rows="3" placeholder="Ex: Robinet qui fuit, climatisation en panne…"></textarea>
+    <div class="modal-label">Urgence</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+      <div class="ctrl-btn" id="urg-normale" onclick="setUrgence('normale')" style="background:#F5EDD9;color:var(--gold-dark);">Normale</div>
+      <div class="ctrl-btn" id="urg-haute" onclick="setUrgence('haute')">Haute</div>
+      <div class="ctrl-btn" id="urg-critique" onclick="setUrgence('critique')">Critique</div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modal-incident')">Annuler</button>
+      <button class="modal-btn modal-btn-primary" onclick="confirmerIncident()">Signaler</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { onAuth, getUserProfile, logout,
+         watchHotel,
+         watchChambres, updateChambre, signalerIncident,
+         watchIncidents, watchRalentissements, updateRalentissement,
+         watchZones, updateZone } from './firebase.js';
+
+let profil = null;
+let incidentsData = {};
+let ralentissementsData = {};
+let zonesData = {};
+let chambresData = {};
+let tabActif = 'controle';
+let chambreSelectee = null;
+let urgenceSelectee = 'normale';
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+onAuth(async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  profil = await getUserProfile(user.uid);
+  if (!profil || profil.role !== 'gouv_etage') {
+    document.getElementById('guard-screen').classList.add('show'); return;
+  }
+  initApp();
+});
+
+function initApp() {
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('hotel-name').textContent = profil.hotel_nom || 'Hôtel';
+  // Afficher le logo si disponible
+  if(profil.hotel_logo) {
+    const wrap = document.getElementById('hotel-logo-wrap');
+    const img  = document.getElementById('hotel-logo-img');
+    if(wrap && img) { img.src = profil.hotel_logo; wrap.style.display = 'block'; }
+  }
+  // Logo en temps réel
+  watchHotel(profil.hotel_id, hotel => {
+    if(hotel.logo) {
+      const wrap = document.getElementById('hotel-logo-wrap');
+      const img  = document.getElementById('hotel-logo-img');
+      if(wrap && img) { img.src = hotel.logo; wrap.style.display = 'block'; }
+    }
+  });
+  document.getElementById('user-nom').textContent   = profil.nom || '';
+  document.getElementById('user-etage').textContent = `Gouvernante · Étage ${profil.etage || '—'}`;
+  const init = (profil.nom||'GE').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('avatar').textContent = init;
+  watchChambres(profil.hotel_id, data => {
+    chambresData = data || {};
+    render();
+  });
+  watchIncidents(profil.hotel_id, data => {
+    incidentsData = data || {};
+    renderProblemes();
+  });
+  watchRalentissements(profil.hotel_id, data => {
+    ralentissementsData = data || {};
+    renderProblemes();
+  });
+  watchZones(profil.hotel_id, data => {
+    zonesData = data || {};
+    updateZonesCount();
+  });
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+window.setTab = (t) => {
+  tabActif = t;
+  document.getElementById('tab-controle').classList.toggle('active', t === 'controle');
+  document.getElementById('tab-toutes').classList.toggle('active', t === 'toutes');
+  document.getElementById('tab-problemes').classList.toggle('active', t === 'problemes');
+  document.getElementById('tab-zones').classList.toggle('active', t === 'zones');
+  if(t === 'zones') renderZonesGE(); else render();
+};
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render() {
+  const monEtage = parseInt(profil.etage);
+  const mesCh = Object.entries(chambresData)
+    .map(([k,v]) => ({id:k,...v}))
+    .filter(c => parseInt(c.etage) === monEtage)
+    .sort((a,b) => a.num - b.num);
+
+  const total   = mesCh.length;
+  const validees = mesCh.filter(c => c.statut === 'validee').length;
+  const aControler = mesCh.filter(c => c.statut === 'prete');
+  const pct = total ? Math.round(validees / total * 100) : 0;
+
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-pct').textContent  = pct + '%';
+  document.getElementById('prog-sub').textContent  = `${validees} validée${validees>1?'s':''} · ${aControler.length} en attente de contrôle`;
+  document.getElementById('count-controle').textContent = aControler.length;
+  document.getElementById('count-toutes').textContent   = total;
+
+  const content = document.getElementById('content');
+
+  if(tabActif === 'controle') {
+    if(aControler.length === 0) {
+      content.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">✅</div>
+          <div class="empty-title">Tout est contrôlé !</div>
+          <div class="empty-sub">Toutes les chambres prêtes ont été validées.</div>
+        </div>`;
+      return;
+    }
+    content.innerHTML = `
+      <div class="section-title">Chambres à contrôler — Étage ${monEtage}</div>
+      ${aControler.map(c => carteControle(c)).join('')}`;
+  } else if(tabActif === 'problemes') {
+    renderProblemes();
+  } else {
+    // Tableau de bord — vue supervision sans actions
+    const counts = { sale:0, en_cours:0, prete:0, validee:0, occupee:0 };
+    mesCh.forEach(c => { if(counts[c.statut] !== undefined) counts[c.statut]++; });
+
+    const nums = (statut) => mesCh.filter(c=>c.statut===statut).map(c=>c.num).join(' - ');
+    const statsHTML = `
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;">
+        <div style="background:#fff;border-radius:10px;border:0.5px solid var(--cb);border-left:3px solid var(--s-sale);padding:12px 14px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+            <div style="font-size:24px;font-weight:700;color:var(--s-sale);line-height:1;">${counts.sale}</div>
+            <div style="font-size:11px;color:var(--s-sale);font-weight:500;text-align:right;line-height:1.4;">${nums('sale')}</div>
+          </div>
+          <div style="font-size:12px;color:var(--tl);margin-top:4px;">Sales</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;border:0.5px solid var(--cb);border-left:3px solid var(--s-cours);padding:12px 14px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+            <div style="font-size:24px;font-weight:700;color:var(--s-cours);line-height:1;">${counts.en_cours}</div>
+            <div style="font-size:11px;color:var(--s-cours);font-weight:500;text-align:right;line-height:1.4;">${nums('en_cours')}</div>
+          </div>
+          <div style="font-size:12px;color:var(--tl);margin-top:4px;">En cours</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;border:0.5px solid var(--cb);border-left:3px solid var(--s-prete);padding:12px 14px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+            <div style="font-size:24px;font-weight:700;color:var(--s-prete);line-height:1;">${counts.prete}</div>
+            <div style="font-size:11px;color:var(--s-prete);font-weight:500;text-align:right;line-height:1.4;">${nums('prete')}</div>
+          </div>
+          <div style="font-size:12px;color:var(--tl);margin-top:4px;">Prêtes</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;border:0.5px solid var(--cb);border-left:3px solid var(--gd);padding:12px 14px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+            <div style="font-size:24px;font-weight:700;color:var(--gd);line-height:1;">${counts.validee}</div>
+            <div style="font-size:11px;color:var(--gd);font-weight:500;text-align:right;line-height:1.4;">${nums('validee')}</div>
+          </div>
+          <div style="font-size:12px;color:var(--tl);margin-top:4px;">Validées ★</div>
+        </div>
+      </div>
+      <div style="background:#fff;border-radius:10px;border:0.5px solid var(--cb);border-left:3px solid #888;padding:12px 14px;margin-bottom:12px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+          <div style="font-size:24px;font-weight:700;color:var(--tl);line-height:1;">${counts.occupee}</div>
+          <div style="font-size:11px;color:var(--tl);font-weight:500;text-align:right;line-height:1.4;">${nums('occupee')}</div>
+        </div>
+        <div style="font-size:12px;color:var(--tl);margin-top:4px;">Occupées</div>
+      </div>`;
+
+    const grilleHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;">
+        ${mesCh.map(c => `
+          <div style="background:#fff;border-radius:10px;
+               border:2px solid ${COULEURS[c.statut]||'#ccc'};
+               padding:12px 8px;text-align:center;">
+            <div style="font-size:18px;font-weight:700;color:#1A1714;">${c.num}</div>
+            <div style="margin-top:6px;">${statutIndicateur(c.statut)}</div>
+          </div>`).join('')}
+      </div>`;
+
+    content.innerHTML = `${statsHTML}`;
+  }
+}
+
+function carteControle(c) {
+  return `
+  <div class="ctrl-card">
+    <div class="ctrl-header">
+      <div class="ctrl-num">${c.num}</div>
+      <div class="ctrl-info">
+        <div class="ctrl-type">${TYPES[c.type]||c.type} · Étage ${c.etage}</div>
+        ${c.assignee_nom ? `<div class="ctrl-staff">Nettoyée par ${c.assignee_nom}</div>` : ''}
+        ${c.observation  ? `<div class="ctrl-obs" style="white-space:pre-line;line-height:1.5;">📝 ${c.observation}</div>` : ''}
+      </div>
+      <div class="ctrl-statut"><span class="badge b-prete">Prête ↓</span></div>
+    </div>
+    <div class="ctrl-actions">
+      <button class="ctrl-btn ctrl-btn-val" onclick="valider('${c.id}')">✓ Valider</button>
+      <button class="ctrl-btn ctrl-btn-ref" onclick="ouvrirRefus('${c.id}')">✗ Refuser</button>
+      <button class="ctrl-btn ctrl-btn-inc" onclick="ouvrirIncident('${c.id}')">⚠ Incident</button>
+    </div>
+  </div>`;
+}
+
+function ligneSimple(c) {
+  return `
+  <div class="ch-row">
+    <div class="ch-num">${c.num}</div>
+    <div class="ch-info">
+      <div class="ch-type">${TYPES[c.type]||c.type}</div>
+      ${c.assignee_nom ? `<div style="font-size:11px;color:var(--tl);margin-top:2px;">👤 ${c.assignee_nom}</div>` : ''}
+    </div>
+    ${c.observation ? `<span style="font-size:14px;margin-right:4px;" title="${c.observation}">⚠️</span>` : ''}
+    ${statutIndicateur(c.statut)}
+  </div>`;
+}
+
+const TYPES   = { simple:'Simple', double:'Double', suite:'Suite' };
+const COULEURS = { sale:'#C0504D', en_cours:'#E08B14', prete:'#2D6A3F', validee:'#1B3A2D', occupee:'#888' };
+
+function statutIndicateur(s) {
+  if(s === 'sale')     return `<div class="s-dot sd-sale"></div>`;
+  if(s === 'en_cours') return `<div class="s-dot sd-cours"></div>`;
+  if(s === 'validee')  return `<span class="sd-val">★</span>`;
+  if(s === 'occupee')  return `<div class="s-dot sd-occ"></div>`;
+  return '';
+}
+
+
+// ── Zones GE ──────────────────────────────────────────────────────────────────
+function updateZonesCount() {
+  const monEtage = parseInt(profil.etage);
+  const mesZones = Object.values(zonesData).filter(z => parseInt(z.etage) === monEtage || z.etage === 0);
+  const aFaire = mesZones.filter(z => z.statut !== 'fait').length;
+  document.getElementById('count-zones').textContent = aFaire;
+}
+
+function renderZonesGE() {
+  const monEtage = parseInt(profil.etage);
+  const mesZones = Object.entries(zonesData)
+    .map(([k,v]) => ({id:k,...v}))
+    .filter(z => parseInt(z.etage) === monEtage || z.etage === 0);
+  const content = document.getElementById('content');
+  const ZONE_ICONS = { couloir:'🏢', lingerie:'🧺', sport:'🏋', lobby:'🚪', spa:'💆', piscine:'🏊' };
+  if(!mesZones.length) {
+    content.innerHTML = '<div class="empty"><div class="empty-icon">🏢</div><div class="empty-title">Aucune zone assignée</div></div>';
+    return;
+  }
+  const aFaire  = mesZones.filter(z => z.statut !== 'fait');
+  const faites  = mesZones.filter(z => z.statut === 'fait');
+  content.innerHTML = `
+    ${aFaire.length ? `
+      <div class="section-title">À valider (${aFaire.length})</div>
+      ${aFaire.map(z => `
+        <div class="ctrl-card">
+          <div class="ctrl-header">
+            <div style="font-size:24px;">${ZONE_ICONS[z.type]||'📍'}</div>
+            <div class="ctrl-info">
+              <div class="ctrl-type">${z.nom}</div>
+              <div class="ctrl-staff">Étage ${z.etage === 0 ? 'RDC' : z.etage}</div>
+            </div>
+            <span class="badge b-cours" style="font-size:11px;">À faire</span>
+          </div>
+          <div class="ctrl-actions one">
+            <button class="ctrl-btn ctrl-btn-val" onclick="validerZoneGE('${z.id}')">✓ Zone faite</button>
+          </div>
+        </div>`).join('')}` : ''}
+    ${faites.length ? `
+      <div class="section-title" style="margin-top:8px;">Validées (${faites.length})</div>
+      ${faites.map(z => `
+        <div class="ctrl-card" style="opacity:0.6;">
+          <div class="ctrl-header">
+            <div style="font-size:24px;">${ZONE_ICONS[z.type]||'📍'}</div>
+            <div class="ctrl-info"><div class="ctrl-type">${z.nom}</div></div>
+            <span style="color:#C4853A;font-size:20px;">★</span>
+          </div>
+        </div>`).join('')}` : ''}`;
+}
+
+window.validerZoneGE = async (id) => {
+  await updateZone(profil.hotel_id, id, { statut: 'fait' });
+  showToast('★ Zone validée');
+};
+
+// ── Render problèmes ─────────────────────────────────────────────────────────
+function renderProblemes() {
+  const monEtage = parseInt(profil.etage);
+
+  // Incidents techniques sur mon étage
+  const incidents = Object.entries(incidentsData)
+    .map(([k,v]) => ({id:k,...v}))
+    .filter(i => i.statut !== 'resolu' && parseInt(i.chambre) >= monEtage*100+1 && parseInt(i.chambre) <= monEtage*100+99);
+
+  // Ralentissements sur mon étage
+  const ralentissements = Object.entries(ralentissementsData)
+    .map(([k,v]) => ({id:k,...v}))
+    .filter(r => r.statut === 'ouvert' && parseInt(r.chambre) >= monEtage*100+1 && parseInt(r.chambre) <= monEtage*100+99);
+
+  const total = incidents.length + ralentissements.length;
+  document.getElementById('count-problemes').textContent = total;
+
+  if(tabActif !== 'problemes') return;
+
+  const content = document.getElementById('content');
+  if(!total) {
+    content.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">✅</div>
+        <div class="empty-title">Aucun problème signalé</div>
+        <div class="empty-sub">Tout est sous contrôle sur l'étage ${monEtage}.</div>
+      </div>`;
+    return;
+  }
+
+  content.innerHTML = `
+    ${incidents.length ? `
+      <div class="section-title">🔧 Problèmes techniques (${incidents.length})</div>
+      ${incidents.map(i => `
+        <div class="ctrl-card">
+          <div class="ctrl-header">
+            <div class="ctrl-num">${i.chambre}</div>
+            <div class="ctrl-info">
+              <div class="ctrl-type" style="color:#8B2020;font-weight:500;">${i.description}</div>
+              <div class="ctrl-staff">Signalé par ${i.signale_par||'—'}</div>
+            </div>
+            <span class="badge b-sale" style="font-size:11px;">
+              ${i.statut === 'ouvert' ? 'Ouvert' : 'En cours'}
+            </span>
+          </div>
+        </div>`).join('')}` : ''}
+
+    ${ralentissements.length ? `
+      <div class="section-title" style="margin-top:8px;">⏱ Ralentissements (${ralentissements.length})</div>
+      ${ralentissements.map(r => `
+        <div class="ctrl-card">
+          <div class="ctrl-header">
+            <div class="ctrl-num">${r.chambre}</div>
+            <div class="ctrl-info">
+              <div class="ctrl-type" style="color:#8B5E14;font-weight:500;">${r.description}</div>
+              <div class="ctrl-staff">Signalé par ${r.signale_par||'—'}</div>
+            </div>
+            <div class="act-btn-val" onclick="leverRalentissementGE('${r.id}')"
+              style="background:#1B3A2D;border-color:#1B3A2D;">
+              <span style="color:#C4853A;font-size:14px;">✓</span>
+            </div>
+          </div>
+        </div>`).join('')}` : ''}`;
+}
+
+window.leverRalentissementGE = async (id) => {
+  await updateRalentissement(profil.hotel_id, id, { statut:'leve', leve_par: profil.nom });
+  showToast('✓ Ralentissement levé');
+};
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+window.valider = async (id) => {
+  await updateChambre(profil.hotel_id, id, { statut:'validee' });
+  showToast(`★ Chambre ${chambresData[id]?.num} validée`);
+};
+
+window.ouvrirRefus = (id) => {
+  chambreSelectee = id;
+  document.getElementById('modal-refus-title').textContent = `Refuser chambre ${chambresData[id]?.num}`;
+  document.getElementById('refus-note').value = '';
+  document.getElementById('modal-refus').classList.add('open');
+};
+
+window.confirmerRefus = async () => {
+  const note = document.getElementById('refus-note').value.trim();
+  if(!note) { showToast('⚠ Veuillez indiquer le motif'); return; }
+  const c = chambresData[chambreSelectee];
+  const ancienneObs = c?.observation || '';
+  const heure = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+  const nouvelleLigne = `[${heure}] Refus: ${note}`;
+  const observationComplete = ancienneObs ? `${ancienneObs}\n${nouvelleLigne}` : nouvelleLigne;
+  await updateChambre(profil.hotel_id, chambreSelectee, {
+    statut: 'en_cours', observation: observationComplete
+  });
+  closeModal('modal-refus');
+  showToast(`✗ Chambre ${chambresData[chambreSelectee]?.num} renvoyée au staff`);
+};
+
+window.ouvrirIncident = (id) => {
+  chambreSelectee = id;
+  document.getElementById('modal-inc-title').textContent = `Incident chambre ${chambresData[id]?.num}`;
+  document.getElementById('inc-desc').value = '';
+  setUrgence('normale');
+  document.getElementById('modal-incident').classList.add('open');
+};
+
+window.setUrgence = (u) => {
+  urgenceSelectee = u;
+  ['normale','haute','critique'].forEach(k => {
+    const el = document.getElementById('urg-'+k);
+    el.style.background = k === u ? 'var(--gd)' : '';
+    el.style.color = k === u ? 'var(--gold)' : '';
+    el.style.borderColor = k === u ? 'var(--gd)' : '';
+  });
+};
+
+window.confirmerIncident = async () => {
+  const desc = document.getElementById('inc-desc').value.trim();
+  if(!desc) { showToast('⚠ Veuillez décrire l\'incident'); return; }
+  const c = chambresData[chambreSelectee];
+  await signalerIncident(profil.hotel_id, {
+    chambre: c?.num, description: desc,
+    urgence: urgenceSelectee,
+    signale_par: profil.nom,
+    hotel_id: profil.hotel_id
+  });
+  closeModal('modal-incident');
+  showToast(`⚠ Incident signalé — Chambre ${c?.num}`);
+};
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+window.doLogout = async () => { await logout(); window.location.href = 'login.html'; };
+window.closeModal = (id, e) => { if(e && e.target.id !== id) return; document.getElementById(id).classList.remove('open'); };
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>

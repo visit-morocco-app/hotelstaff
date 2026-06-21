@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>HotelStaff — Staff</title>
+<link rel="stylesheet" href="style.css">
+<style>
+:root {
+  --gold:#C9A96E; --gold-light:#F5EDD9; --gold-dark:#8B6914;
+  --gd:#1B3A2D; --gm:#2D5A40;
+  --cream:#FAF8F3; --cb:#EDE8DC;
+  --tm:#5C5347; --tl:#9C9080;
+  --s-sale:#C0504D; --s-cours:#E08B14; --s-prete:#2D6A3F;
+  --amber:#BA7517; --amber-light:#FAEEDA;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#FDFCFA; color:#1A1714; min-height:100vh; }
+
+/* Header */
+.header { background:#5C2238; padding:14px 16px 12px; position:sticky; top:0; z-index:100; }
+.hotel-name { font-size:15px; font-weight:600; color:#FAF8F3; }
+.hotel-sub  { font-size:11px; color:var(--gold); margin-top:1px; }
+.avatar { width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:#FAF8F3; flex-shrink:0; cursor:pointer; }
+.user-name { font-size:13px; color:#FAF8F3; font-weight:600; }
+.user-role { font-size:11px; color:var(--gold); }
+
+/* Progression */
+.progress-wrap { background:#F5EDD9; padding:12px 16px; border-bottom:0.5px solid var(--cb); }
+.progress-top { display:flex; justify-content:space-between; margin-bottom:8px; }
+.progress-label { font-size:13px; color:#5C2238; font-weight:600; }
+.progress-pct { font-size:13px; color:#5C2238; font-weight:700; }
+.progress-bar { height:6px; background:var(--cb); border-radius:3px; overflow:hidden; }
+.progress-fill { height:100%; background:#5C2238; border-radius:3px; transition:width 0.5s ease; }
+.progress-sub { font-size:12px; color:var(--tl); margin-top:6px; }
+
+/* Bravo message */
+.bravo { text-align:center; padding:48px 20px; }
+.bravo-icon { font-size:48px; margin-bottom:12px; }
+.bravo-title { font-size:18px; font-weight:700; color:var(--gd); margin-bottom:6px; }
+.bravo-sub { font-size:14px; color:var(--tl); }
+
+/* Section title */
+.section-title { font-size:11px; font-weight:600; color:var(--tl); text-transform:uppercase; letter-spacing:0.05em; padding:14px 16px 6px; }
+
+/* Carte chambre staff */
+.ch-card { background:#fff; margin:0 12px 10px; border-radius:14px; border:0.5px solid #E0DCE0; overflow:hidden; }
+.ch-card.done { opacity:0.6; }
+.ch-top { display:flex; align-items:center; padding:16px; gap:14px; }
+.ch-num { font-size:32px; font-weight:700; color:#1A1714; width:60px; flex-shrink:0; }
+.ch-info { flex:1; }
+.ch-type { font-size:14px; color:var(--tm); font-weight:500; }
+.ch-etage { font-size:12px; color:var(--tl); margin-top:2px; }
+.ch-obs { font-size:11px; color:var(--gold-dark); margin-top:4px; }
+.ch-statut { flex-shrink:0; }
+.badge { font-size:12px; padding:5px 12px; border-radius:20px; font-weight:500; }
+.b-sale  { background:#FAEAEA; color:#8B2020; }
+.b-cours { background:var(--amber-light); color:var(--amber); }
+.b-prete { background:#EAF3E8; color:var(--gm); }
+.b-val   { background:var(--gd); color:var(--gold); }
+.b-occ   { background:var(--cb); color:var(--tl); }
+
+/* Actions staff */
+.ch-actions { display:grid; gap:8px; padding:0 14px 14px; }
+.ch-actions.two { grid-template-columns:1fr 1fr; }
+.ch-actions.one { grid-template-columns:1fr; }
+.ch-btn { padding:13px; border-radius:10px; border:none; font-size:14px; font-weight:600; cursor:pointer; text-align:center; transition:all 0.15s; }
+.ch-btn:active { transform:scale(0.97); }
+.btn-cours { background:var(--amber-light); color:var(--amber); }
+.btn-prete { background:#5C2238; color:#C9A96E; }
+.btn-prob  { background:#FAEAEA; color:#8B2020; }
+
+/* Modal */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal { background:#fff; border-radius:20px 20px 0 0; padding:20px 20px 36px; width:100%; max-width:500px; transform:translateY(24px); transition:transform 0.25s; }
+.modal-overlay.open .modal { transform:translateY(0); }
+.modal-handle { width:36px; height:4px; background:var(--cb); border-radius:2px; margin:0 auto 18px; }
+.modal-title { font-size:17px; font-weight:600; margin-bottom:4px; }
+.modal-sub { font-size:13px; color:var(--tl); margin-bottom:16px; }
+.modal-label { font-size:12px; color:var(--tl); margin-bottom:6px; font-weight:500; }
+.modal-input { width:100%; padding:12px 14px; border:0.5px solid var(--cb); border-radius:8px; font-size:14px; background:var(--cream); outline:none; resize:none; font-family:inherit; }
+.modal-input:focus { border-color:var(--gd); }
+.modal-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+.modal-btn { padding:13px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; border:0.5px solid var(--cb); background:#fff; color:#1A1714; text-align:center; }
+.modal-btn-primary { background:var(--gd); color:var(--gold); border-color:var(--gd); }
+.modal-btn-cancel  { color:var(--tl); }
+
+/* Guard */
+.guard { position:fixed; inset:0; background:#fff; display:none; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center; z-index:300; }
+.guard.show { display:flex; }
+
+/* Toast */
+.toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); background:#1A1714; color:#fff; padding:10px 22px; border-radius:20px; font-size:13px; font-weight:500; z-index:500; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.toast.show { opacity:1; }
+
+@media(min-width:600px) {
+  .ch-card { max-width:500px; margin:0 auto 10px; }
+}
+</style>
+</head>
+<body>
+
+<div class="guard" id="guard-screen">
+  <div style="font-size:40px;margin-bottom:16px;">🔒</div>
+  <div style="font-size:18px;font-weight:600;margin-bottom:8px;">Accès refusé</div>
+  <div style="font-size:14px;color:var(--tl);margin-bottom:20px;">Contactez votre gouvernante.</div>
+  <button class="modal-btn" onclick="window.location.href='login.html'">Retour</button>
+</div>
+
+<div id="app" style="display:none">
+
+  <div class="header">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;">
+        <div id="hotel-logo-wrap" style="display:none;width:28px;height:28px;border-radius:6px;overflow:hidden;flex-shrink:0;"><img id="hotel-logo-img" src="" style="width:100%;height:100%;object-fit:cover;"></div>
+        <div class="hotel-name" id="hotel-name">Hôtel</div></div>
+        <div class="hotel-sub">Mon planning</div>
+      </div>
+      <div class="avatar" id="avatar" onclick="doLogout()">F</div>
+    </div>
+    <div>
+      <div class="user-name" id="user-nom">—</div>
+      <div class="user-role">Staff · Femme de chambre</div>
+    </div>
+  </div>
+
+  <!-- Progression -->
+  <div class="progress-wrap">
+    <div class="progress-top">
+      <span class="progress-label" id="prog-label">Mes chambres aujourd'hui</span>
+      <span class="progress-pct" id="prog-pct">0%</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="prog-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-sub" id="prog-sub">Chargement...</div>
+  </div>
+
+  <div id="content" style="padding-bottom:30px;"></div>
+
+</div>
+
+<!-- Modal problème -->
+<div class="modal-overlay" id="modal-prob" onclick="closeModal('modal-prob', event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-prob-title">Signaler</div>
+    <div class="modal-sub">Quel est l'impact sur votre travail ?</div>
+
+    <!-- Choix du type -->
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+      <button class="ch-btn" id="btn-type-technique" onclick="choisirTypeProbleme('technique')"
+        style="background:#FAEAEA;color:#8B2020;border:2px solid transparent;padding:12px 14px;border-radius:10px;text-align:left;">
+        <div style="font-size:14px;font-weight:600;">🔧 Problème technique</div>
+        <div style="font-size:11px;margin-top:2px;opacity:0.75;">Robinet, clim, équipement → Maintenance</div>
+      </button>
+      <button class="ch-btn" id="btn-type-bloquant" onclick="choisirTypeProbleme('bloquant')"
+        style="background:#FDF3E3;color:#8B5E14;border:2px solid transparent;padding:12px 14px;border-radius:10px;text-align:left;">
+        <div style="font-size:14px;font-weight:600;">⏱ Ça va me ralentir</div>
+        <div style="font-size:11px;margin-top:2px;opacity:0.75;">Rupture stock, chambre très sale → Gouvernante</div>
+      </button>
+    </div>
+
+    <!-- Catégories (affichées selon le type choisi) -->
+    <div id="prob-categories" style="display:none;margin-bottom:12px;">
+      <div class="modal-label">Catégorie</div>
+      <div id="prob-categorie-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <input type="hidden" id="prob-categorie" value="">
+    </div>
+
+    <!-- Précision optionnelle -->
+    <div id="prob-precision-wrap" style="display:none;">
+      <div class="modal-label">Préciser (optionnel)</div>
+      <textarea class="modal-input" id="prob-desc" rows="2" placeholder="Ajouter des détails si nécessaire…"></textarea>
+    </div>
+
+    <div class="modal-actions" style="margin-top:14px;">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modal-prob')">Annuler</button>
+      <button class="modal-btn modal-btn-primary" id="btn-confirmer-prob" onclick="confirmerProbleme()" disabled style="opacity:0.4;">Signaler</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { onAuth, getUserProfile, logout,
+         watchHotel,
+         watchChambres, updateChambre, signalerIncident, demanderReappro,
+         watchIncidents } from './firebase.js';
+
+let profil = null;
+let chambresData = {};
+let chambreSelectee = null;
+let incidentsData = {};
+let typeProblemeSelectionne = null;
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+onAuth(async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  profil = await getUserProfile(user.uid);
+  if (!profil || profil.role !== 'staff') {
+    document.getElementById('guard-screen').classList.add('show'); return;
+  }
+  initApp();
+});
+
+function initApp() {
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('hotel-name').textContent = profil.hotel_nom || 'Hôtel';
+  // Afficher le logo si disponible
+  if(profil.hotel_logo) {
+    const wrap = document.getElementById('hotel-logo-wrap');
+    const img  = document.getElementById('hotel-logo-img');
+    if(wrap && img) { img.src = profil.hotel_logo; wrap.style.display = 'block'; }
+  }
+  // Logo en temps réel
+  watchHotel(profil.hotel_id, hotel => {
+    if(hotel.logo) {
+      const wrap = document.getElementById('hotel-logo-wrap');
+      const img  = document.getElementById('hotel-logo-img');
+      if(wrap && img) { img.src = hotel.logo; wrap.style.display = 'block'; }
+    }
+  });
+  document.getElementById('user-nom').textContent   = profil.nom || '';
+  const init = (profil.nom||'S').charAt(0).toUpperCase();
+  document.getElementById('avatar').textContent = init;
+
+  watchChambres(profil.hotel_id, data => {
+    chambresData = data || {};
+    render();
+  });
+  watchIncidents(profil.hotel_id, data => {
+    incidentsData = data || {};
+    render();
+  });
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render() {
+  // Mes chambres = assignées à moi
+  const toutes = Object.entries(chambresData)
+    .map(([k,v]) => ({id:k,...v}))
+    .filter(c => c.assignee_nom === profil.nom)
+    .sort((a,b) => a.num - b.num);
+
+  const total  = toutes.length;
+  const pretes = toutes.filter(c => c.statut === 'prete' || c.statut === 'validee').length;
+  const pct    = total ? Math.round(pretes / total * 100) : 0;
+
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-pct').textContent  = pct + '%';
+  document.getElementById('prog-sub').textContent  =
+    `${pretes} terminée${pretes>1?'s':''} sur ${total} chambre${total>1?'s':''}`;
+
+  const content = document.getElementById('content');
+
+  if(total === 0) {
+    content.innerHTML = `
+      <div class="bravo">
+        <div class="bravo-icon">📋</div>
+        <div class="bravo-title">Aucune chambre assignée</div>
+        <div class="bravo-sub">Votre gouvernante n'a pas encore assigné de chambres.</div>
+      </div>`;
+    return;
+  }
+
+  if(pretes === total) {
+    content.innerHTML = `
+      <div class="bravo">
+        <div class="bravo-icon">🌟</div>
+        <div class="bravo-title">Bravo ${profil.nom?.split(' ')[0] || ''} !</div>
+        <div class="bravo-sub">Toutes vos chambres sont prêtes. Excellent travail !</div>
+      </div>`;
+    return;
+  }
+
+  const aFaire  = toutes.filter(c => c.statut === 'sale' || c.statut === 'en_cours');
+  const terminees = toutes.filter(c => c.statut === 'prete' || c.statut === 'validee');
+
+  let html = '';
+
+  if(aFaire.length) {
+    html += `<div class="section-title">À faire (${aFaire.length})</div>`;
+    html += aFaire.map(c => carteStaff(c)).join('');
+  }
+
+  if(terminees.length) {
+    html += `<div class="section-title">Terminées (${terminees.length})</div>`;
+    html += terminees.map(c => carteStaff(c, true)).join('');
+  }
+
+  content.innerHTML = html;
+}
+
+function carteStaff(c, done = false) {
+  const isSale   = c.statut === 'sale';
+  const isCours  = c.statut === 'en_cours';
+  const isPrete  = c.statut === 'prete';
+  const isVal    = c.statut === 'validee';
+
+  let actions = '';
+  if(isSale) {
+    actions = `
+      <div class="ch-actions one">
+        <button class="ch-btn btn-cours" onclick="changerStatut('${c.id}','en_cours')">🧹 Je commence</button>
+      </div>`;
+  } else if(isCours) {
+    const hasIncident = Object.values(incidentsData).some(
+      i => String(i.chambre) === String(c.num) && i.statut !== 'resolu'
+    );
+    actions = hasIncident ? `
+      <div class="ch-actions one">
+        <div style="background:#FDF3E3;color:#8B5E14;border-radius:10px;padding:12px;font-size:13px;font-weight:500;text-align:center;">
+          ⏳ En attente de la maintenance
+        </div>
+      </div>` : `
+      <div class="ch-actions two">
+        <button class="ch-btn btn-prete" onclick="changerStatut('${c.id}','prete')">✓ C'est prêt !</button>
+        <button class="ch-btn btn-prob"  onclick="ouvrirProbleme('${c.id}')">⚠ Problème</button>
+      </div>`;
+  } else if(isPrete) {
+    actions = '';
+  }
+
+  return `
+  <div class="ch-card ${done ? 'done' : ''}">
+    <div class="ch-top">
+      <div class="ch-num">${c.num}</div>
+      <div class="ch-info">
+        <div class="ch-type">${TYPES[c.type]||c.type}</div>
+        <div class="ch-etage">Étage ${c.etage}</div>
+        ${c.observation ? `<div class="ch-obs">📝 ${c.observation}</div>` : ''}
+      </div>
+      <div class="ch-statut">
+        ${statutBadge(c.statut)}
+      </div>
+    </div>
+    ${actions}
+  </div>`;
+}
+
+const TYPES = { simple:'Simple', double:'Double', suite:'Suite' };
+
+function statutBadge(s) {
+  if(s === 'sale')     return `<span class="badge b-sale">Sale</span>`;
+  if(s === 'en_cours') return `<span class="badge b-cours">En cours</span>`;
+  if(s === 'prete')    return `<span class="badge b-prete">Prête ✓</span>`;
+  if(s === 'validee')  return `<span class="badge b-val">Validée ★</span>`;
+  return '';
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+window.changerStatut = async (id, statut) => {
+  await updateChambre(profil.hotel_id, id, { statut });
+  const msgs = { en_cours:'🧹 C\'est parti !', prete:'✓ Chambre marquée prête !' };
+  showToast(msgs[statut] || 'Mise à jour effectuée');
+};
+
+window.ouvrirProbleme = (id) => {
+  chambreSelectee = id;
+  typeProblemeSelectionne = null;
+  const c = chambresData[id];
+  document.getElementById('modal-prob-title').textContent = `Chambre ${c?.num}`;
+  document.getElementById('prob-desc').value = '';
+  document.getElementById('prob-categories').style.display = 'none';
+  document.getElementById('prob-precision-wrap').style.display = 'none';
+  document.getElementById('btn-confirmer-prob').disabled = true;
+  document.getElementById('btn-confirmer-prob').style.opacity = '0.4';
+  resetTypeButtons();
+  document.getElementById('modal-prob').classList.add('open');
+};
+
+const CATEGORIES = {
+  technique: [
+    'Robinet / plomberie',
+    'Climatisation / chauffage',
+    'Électricité / ampoule',
+    'Mobilier endommagé',
+    'Serrure / porte',
+    'TV / téléphone',
+    'Autre problème technique'
+  ],
+  bloquant: [
+    'Rupture de stock (produits)',
+    'Rupture de linge / serviettes',
+    'Chambre très sale (départ difficile)',
+    'Client encore présent',
+    'Attente équipement / matériel',
+    'Autre ralentissement'
+  ]
+};
+
+window.choisirTypeProbleme = (type) => {
+  typeProblemeSelectionne = type;
+  resetTypeButtons();
+  if(type === 'technique') {
+    document.getElementById('btn-type-technique').style.borderColor = '#8B2020';
+  } else {
+    document.getElementById('btn-type-bloquant').style.borderColor = '#8B5E14';
+  }
+
+  // Couleur accent selon type
+  const accentColor = type === 'technique' ? '#8B2020' : '#8B5E14';
+  const accentBg    = type === 'technique' ? '#FAEAEA' : '#FDF3E3';
+
+  // Peupler avec boutons stylisés
+  const list = document.getElementById('prob-categorie-list');
+  const hidden = document.getElementById('prob-categorie');
+  hidden.value = '';
+  list.innerHTML = '';
+
+  CATEGORIES[type].forEach(cat => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = cat;
+    btn.style.cssText = `padding:9px 12px;border-radius:8px;border:1px solid #EDE8DC;
+      background:#FDFCFA;font-size:13px;font-family:inherit;text-align:left;
+      cursor:pointer;color:#1A1714;transition:all 0.15s;`;
+    btn.onclick = () => {
+      // Reset tous les boutons
+      list.querySelectorAll('button').forEach(b => {
+        b.style.background = '#FDFCFA';
+        b.style.borderColor = '#EDE8DC';
+        b.style.color = '#1A1714';
+        b.style.fontWeight = 'normal';
+      });
+      // Sélectionner ce bouton
+      btn.style.background = accentBg;
+      btn.style.borderColor = accentColor;
+      btn.style.color = accentColor;
+      btn.style.fontWeight = '500';
+      hidden.value = cat;
+      // Activer le bouton Signaler
+      document.getElementById('btn-confirmer-prob').disabled = false;
+      document.getElementById('btn-confirmer-prob').style.opacity = '1';
+    };
+    list.appendChild(btn);
+  });
+
+  document.getElementById('prob-categories').style.display = 'block';
+  document.getElementById('prob-precision-wrap').style.display = 'block';
+  document.getElementById('prob-desc').value = '';
+  document.getElementById('btn-confirmer-prob').disabled = true;
+  document.getElementById('btn-confirmer-prob').style.opacity = '0.4';
+};
+
+function resetTypeButtons() {
+  document.getElementById('btn-type-technique').style.borderColor = 'transparent';
+  document.getElementById('btn-type-bloquant').style.borderColor = 'transparent';
+}
+
+window.confirmerProbleme = async () => {
+  const categorie = document.getElementById('prob-categorie').value;
+  const precision = document.getElementById('prob-desc').value.trim();
+  if(!typeProblemeSelectionne) { showToast('⚠ Choisissez un type'); return; }
+  if(!categorie) { showToast('⚠ Choisissez une catégorie'); return; }
+
+  const desc = precision ? `${categorie} — ${precision}` : categorie;
+  const c = chambresData[chambreSelectee];
+  const heure = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+  const ancienneObs = c?.observation || '';
+
+  if(typeProblemeSelectionne === 'technique') {
+    // Crée un vrai incident → va dans Maintenance
+    await signalerIncident(profil.hotel_id, {
+      chambre: c?.num,
+      description: desc,
+      signale_par: profil.nom,
+      urgence: 'normale'
+    });
+    const nouvelleLigne = `[${heure}] 🔧 ${desc}`;
+    const observationComplete = ancienneObs ? `${ancienneObs}\n${nouvelleLigne}` : nouvelleLigne;
+    await updateChambre(profil.hotel_id, chambreSelectee, { observation: observationComplete });
+    showToast(`🔧 Incident technique signalé — Chambre ${c?.num}`);
+  } else {
+    // Réapprovisionnement → entité traçable séparée, visible Gouvernante uniquement
+    await demanderReappro(profil.hotel_id, {
+      chambre: c?.num,
+      description: desc,
+      demande_par: profil.nom
+    });
+    const nouvelleLigne = `[${heure}] 🧺 Réappro demandé: ${desc}`;
+    const observationComplete = ancienneObs ? `${ancienneObs}\n${nouvelleLigne}` : nouvelleLigne;
+    await updateChambre(profil.hotel_id, chambreSelectee, { observation: observationComplete });
+    showToast(`🧺 Demande transmise à la gouvernante — Chambre ${c?.num}`);
+  }
+  closeModal('modal-prob');
+};
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+window.doLogout = async () => { await logout(); window.location.href = 'login.html'; };
+window.closeModal = (id, e) => { if(e && e.target.id !== id) return; document.getElementById(id).classList.remove('open'); };
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>HotelStaff — Paramétrage</title>
+<link rel="stylesheet" href="style.css">
+<style>
+:root {
+  --anthracite:#2C2C2C; --gold:#C4853A; --gold-light:#F5EDD9; --gold-dark:#8B6914;
+  --gd:#1B3A2D; --cream:#FDFCFA; --cb:#EDE8DC; --tm:#5C5347; --tl:#9C9080;
+  --red:#C0504D; --red-light:#FAEAEA; --green:#2D6A3F; --green-light:#EAF3E8;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#F2F2F0; color:#1A1714; min-height:100vh; }
+
+/* Header */
+.header { background:#3D2C5E; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+.header-left { display:flex; align-items:center; gap:12px; }
+.back-btn { width:34px; height:34px; border-radius:8px; background:rgba(255,255,255,0.1); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#fff; font-size:18px; }
+.page-title { font-size:15px; font-weight:600; color:#FAF8F3; }
+.page-sub   { font-size:11px; color:var(--gold); margin-top:1px; }
+.avatar { width:34px; height:34px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:var(--anthracite); cursor:pointer; }
+
+/* Tabs navigation */
+.nav-tabs { background:#fff; border-bottom:0.5px solid var(--cb); display:flex; overflow-x:auto; }
+.nav-tab { flex-shrink:0; padding:12px 18px; font-size:13px; font-weight:500; cursor:pointer; color:var(--tl); border-bottom:2px solid transparent; border-top:none; border-left:none; border-right:none; background:none; white-space:nowrap; transition:all 0.2s; }
+.nav-tab.active { color:var(--anthracite); border-bottom:2px solid var(--gold); }
+
+/* Content */
+.content { padding:16px; max-width:700px; margin:0 auto; display:flex; flex-direction:column; gap:14px; padding-bottom:40px; }
+
+/* Section card */
+.section-card { background:#fff; border-radius:12px; border:0.5px solid var(--cb); overflow:hidden; }
+.section-header { padding:14px 16px; border-bottom:0.5px solid var(--cb); display:flex; align-items:center; justify-content:space-between; }
+.section-title { font-size:14px; font-weight:600; color:#1A1714; }
+.section-sub { font-size:12px; color:var(--tl); margin-top:2px; }
+.section-body { padding:16px; }
+
+/* Form */
+.form-group { margin-bottom:14px; }
+.form-label { font-size:12px; font-weight:500; color:var(--tm); margin-bottom:6px; display:block; }
+.form-input { width:100%; padding:11px 13px; border:0.5px solid var(--cb); border-radius:8px; font-size:14px; background:var(--cream); outline:none; font-family:inherit; transition:border-color 0.15s; }
+.form-input:focus { border-color:var(--anthracite); }
+.form-select { width:100%; padding:11px 13px; border:0.5px solid var(--cb); border-radius:8px; font-size:14px; background:var(--cream); outline:none; font-family:inherit; cursor:pointer; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+/* Boutons */
+.btn { padding:10px 16px; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; border:none; transition:all 0.15s; display:inline-flex; align-items:center; gap:6px; }
+.btn:active { transform:scale(0.97); }
+.btn-primary { background:#3D2C5E; color:#fff; }
+.btn-gold    { background:var(--gold); color:#fff; }
+.btn-outline { background:#fff; color:var(--tm); border:0.5px solid var(--cb); }
+.btn-danger  { background:var(--red-light); color:var(--red); }
+.btn-sm      { padding:6px 12px; font-size:12px; }
+.btn-full    { width:100%; justify-content:center; }
+
+/* Liste items */
+.item-list { display:flex; flex-direction:column; gap:8px; }
+.item-row { display:flex; align-items:center; gap:10px; padding:11px 14px; background:var(--cream); border-radius:8px; border:0.5px solid var(--cb); }
+.item-icon { font-size:18px; flex-shrink:0; }
+.item-info { flex:1; }
+.item-name  { font-size:13px; font-weight:500; color:#1A1714; }
+.item-sub   { font-size:11px; color:var(--tl); margin-top:1px; }
+.item-actions { display:flex; gap:6px; flex-shrink:0; }
+.icon-btn { width:30px; height:30px; border-radius:6px; border:0.5px solid var(--cb); background:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; }
+
+/* Badge rôle */
+.role-badge { font-size:10px; padding:2px 8px; border-radius:20px; font-weight:500; }
+.rb-gouv-gen   { background:#EEF4EA; color:#2D5C38; }
+.rb-gouv-etage { background:#E8F5EE; color:#1B6B3A; }
+.rb-staff      { background:#F5EDD9; color:#8B5E14; }
+.rb-reception  { background:#E8EDF8; color:#2C3E6B; }
+.rb-maintenance{ background:#F5EDE8; color:#6B3A2C; }
+.rb-directeur  { background:#F0F0F0; color:#2C2C2C; }
+
+/* Séparateur */
+.divider { height:0.5px; background:var(--cb); margin:14px 0; }
+
+/* Modal */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal { background:#fff; border-radius:20px 20px 0 0; padding:20px 20px 36px; width:100%; max-width:500px; transform:translateY(24px); transition:transform 0.25s; max-height:90vh; overflow-y:auto; }
+.modal-overlay.open .modal { transform:translateY(0); }
+.modal-handle { width:36px; height:4px; background:var(--cb); border-radius:2px; margin:0 auto 18px; }
+.modal-title { font-size:17px; font-weight:600; margin-bottom:16px; }
+.modal-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
+.modal-btn { padding:12px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; border:0.5px solid var(--cb); background:#fff; color:#1A1714; text-align:center; }
+.modal-btn-primary { background:#3D2C5E; color:#fff; border-color:var(--anthracite); }
+.modal-btn-cancel  { color:var(--tl); }
+
+/* Guard */
+.guard { position:fixed; inset:0; background:#fff; display:none; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center; z-index:300; }
+.guard.show { display:flex; }
+
+/* Toast */
+.toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); background:#1A1714; color:#fff; padding:10px 22px; border-radius:20px; font-size:13px; font-weight:500; z-index:500; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.toast.show { opacity:1; }
+</style>
+</head>
+<body>
+
+<div class="guard" id="guard-screen">
+  <div style="font-size:40px;margin-bottom:16px;">🔒</div>
+  <div style="font-size:18px;font-weight:600;margin-bottom:8px;">Accès refusé</div>
+  <div style="font-size:14px;color:var(--tl);margin-bottom:20px;">Espace réservé au directeur et à la gouvernante générale.</div>
+  <button class="modal-btn" onclick="window.location.href='login.html'">Retour connexion</button>
+</div>
+
+<div id="app" style="display:none">
+
+  <div class="header">
+    <div class="header-left">
+      <button class="back-btn" onclick="history.back()">←</button>
+      <div>
+        <div class="page-title">Paramétrage</div>
+        <div class="page-sub" id="hotel-name">Hôtel</div>
+      </div>
+    </div>
+    <div class="avatar" id="avatar" onclick="doLogout()">D</div>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="setTab('hotel')">🏨 Hôtel</button>
+    <button class="nav-tab" onclick="setTab('chambres')">🚪 Chambres</button>
+    <button class="nav-tab" onclick="setTab('zones')">🏢 Zones</button>
+    <button class="nav-tab" onclick="setTab('users')">👥 Utilisateurs</button>
+  </div>
+
+  <div class="content" id="content"></div>
+
+</div>
+
+<!-- Modal chambre -->
+<div class="modal-overlay" id="modal-chambre" onclick="closeModal('modal-chambre',event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-ch-title">Ajouter une chambre</div>
+    <div class="form-group">
+      <label class="form-label">Numéro de chambre</label>
+      <input class="form-input" type="number" id="ch-num" placeholder="Ex: 101">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Étage</label>
+        <input class="form-input" type="number" id="ch-etage" placeholder="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <div style="display:flex;gap:8px;">
+          <button type="button" id="ch-type-simple" onclick="selChType('simple')"
+            style="flex:1;padding:8px;border-radius:8px;border:1px solid #EDE8DC;background:#FDFCFA;color:#1A1714;font-size:12px;font-family:inherit;cursor:pointer;">
+            Simple
+          </button>
+          <button type="button" id="ch-type-double" onclick="selChType('double')"
+            style="flex:1;padding:8px;border-radius:8px;border:2px solid var(--anthracite);background:var(--anthracite);color:#fff;font-size:12px;font-family:inherit;cursor:pointer;">
+            Double
+          </button>
+          <button type="button" id="ch-type-suite" onclick="selChType('suite')"
+            style="flex:1;padding:8px;border-radius:8px;border:1px solid #EDE8DC;background:#FDFCFA;color:#1A1714;font-size:12px;font-family:inherit;cursor:pointer;">
+            Suite
+          </button>
+        </div>
+        <input type="hidden" id="ch-type" value="double">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modal-chambre')">Annuler</button>
+      <button class="modal-btn modal-btn-primary" onclick="sauvegarderChambre()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal zone -->
+<div class="modal-overlay" id="modal-zone" onclick="closeModal('modal-zone',event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-zone-title">Ajouter une zone</div>
+    <div class="form-group">
+      <label class="form-label">Nom de la zone</label>
+      <input class="form-input" id="zone-nom" placeholder="Ex: Couloir étage 1">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select class="form-select" id="zone-type">
+          <option value="couloir">Couloir</option>
+          <option value="lingerie">Lingerie</option>
+          <option value="sport">Salle de sport</option>
+          <option value="lobby">Lobby</option>
+          <option value="piscine">Piscine</option>
+          <option value="spa">Spa</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Étage (0 = RDC)</label>
+        <input class="form-input" type="number" id="zone-etage" placeholder="0" value="0">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modal-zone')">Annuler</button>
+      <button class="modal-btn modal-btn-primary" onclick="sauvegarderZone()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal utilisateur -->
+<div class="modal-overlay" id="modal-user" onclick="closeModal('modal-user',event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Ajouter un utilisateur</div>
+    <div class="form-group">
+      <label class="form-label">Nom complet</label>
+      <input class="form-input" id="user-nom-input" placeholder="Ex: Fatima Benali">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" type="email" id="user-email" placeholder="fatima@hotel.ma">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mot de passe provisoire</label>
+      <input class="form-input" type="password" id="user-pass" placeholder="Minimum 6 caractères">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Rôle</label>
+      <select class="form-select" id="user-role">
+        <option value="gouv_generale">Gouvernante Générale</option>
+        <option value="gouv_etage">Gouvernante d'étage</option>
+        <option value="staff">Staff / Femme de chambre</option>
+        <option value="reception">Réception</option>
+        <option value="maintenance">Maintenance</option>
+      </select>
+    </div>
+    <div class="form-group" id="etage-group" style="display:none;">
+      <label class="form-label">Étage assigné</label>
+      <input class="form-input" type="number" id="user-etage" placeholder="1">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modal-user')">Annuler</button>
+      <button class="modal-btn modal-btn-primary" onclick="sauvegarderUser()">Créer le compte</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal confirmation suppression -->
+<div class="modal-overlay" id="modal-confirm" onclick="if(event.target.id==='modal-confirm')annulerSuppression()">
+  <div class="modal" style="max-height:auto;">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-size:36px;margin-bottom:10px;">🗑️</div>
+      <div class="modal-title" id="confirm-title" style="font-size:16px;"></div>
+      <div id="confirm-message" style="font-size:13px;color:var(--tl);margin-top:6px;"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
+      <button class="modal-btn modal-btn-cancel" onclick="annulerSuppression()">Annuler</button>
+      <button class="modal-btn" style="background:var(--red);color:#fff;border-color:var(--red);" onclick="executerSuppression()">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal génération rapide -->
+<div class="modal-overlay" id="modal-generation" onclick="closeModal('modal-generation',event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚡ Génération rapide des chambres</div>
+    <div class="modal-sub" style="margin-bottom:16px;">Créez toutes vos chambres en une seule action.</div>
+
+    <div class="form-group">
+      <label class="form-label">Nombre d'étages</label>
+      <input class="form-input" type="number" id="gen-etages" placeholder="Ex: 5" min="1" max="20" value="3">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Chambres par étage</label>
+      <input class="form-input" type="number" id="gen-par-etage" placeholder="Ex: 20" min="1" max="50" value="10">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Numéro de départ (1er étage)</label>
+      <input class="form-input" type="number" id="gen-debut" placeholder="Ex: 101" value="101">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Type par défaut</label>
+      <div style="display:flex;gap:8px;">
+        <button type="button" id="gen-type-double" onclick="selGenType('double')"
+          style="flex:1;padding:9px;border-radius:8px;border:2px solid var(--anthracite);background:var(--anthracite);color:#fff;font-size:13px;font-family:inherit;cursor:pointer;">
+          Double
+        </button>
+        <button type="button" id="gen-type-simple" onclick="selGenType('simple')"
+          style="flex:1;padding:9px;border-radius:8px;border:1px solid #EDE8DC;background:#FDFCFA;color:#1A1714;font-size:13px;font-family:inherit;cursor:pointer;">
+          Simple
+        </button>
+        <button type="button" id="gen-type-suite" onclick="selGenType('suite')"
+          style="flex:1;padding:9px;border-radius:8px;border:1px solid #EDE8DC;background:#FDFCFA;color:#1A1714;font-size:13px;font-family:inherit;cursor:pointer;">
+          Suite
+        </button>
+      </div>
+      <input type="hidden" id="gen-type" value="double">
+    </div>
+
+    <!-- Aperçu -->
+    <div id="gen-apercu" style="background:#F5EDD9;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#5C5347;display:none;"></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modal-generation')">Annuler</button>
+      <button class="modal-btn modal-btn-primary" onclick="genererChambres()">⚡ Générer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { onAuth, getUserProfile, logout,
+         watchChambres, updateChambre,
+         watchZones, updateZone,
+         watchStaff, db } from './firebase.js';
+import { ref, set, update, remove, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { initializeApp as initApp2 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+let profil = null;
+let chambresData = {};
+let zonesData = {};
+let staffData = {};
+let tabActif = 'hotel';
+let chambreEditId = null;
+let zoneEditId = null;
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+onAuth(async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  profil = await getUserProfile(user.uid);
+  if (!profil || !['directeur','gouv_generale'].includes(profil.role)) {
+    document.getElementById('guard-screen').classList.add('show'); return;
+  }
+  initApp();
+});
+
+function initApp() {
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('hotel-name').textContent = profil.hotel_nom || 'Hôtel';
+  const init = (profil.nom||'D').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('avatar').textContent = init;
+  watchChambres(profil.hotel_id, d => { chambresData = d||{}; renderTab(); });
+  watchZones(profil.hotel_id,   d => { zonesData   = d||{}; renderTab(); });
+  watchStaff(profil.hotel_id,   d => { staffData   = d||{}; renderTab(); });
+  setTimeout(() => chargerLogoExistant(), 300);
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+window.setTab = (t) => {
+  tabActif = t;
+  document.querySelectorAll('.nav-tab').forEach((btn,i) => {
+    btn.classList.toggle('active', ['hotel','chambres','zones','users'][i] === t);
+  });
+  renderTab();
+};
+
+function renderTab() {
+  const c = document.getElementById('content');
+  if(tabActif === 'hotel')    c.innerHTML = renderHotel();
+  if(tabActif === 'chambres') c.innerHTML = renderChambres();
+  if(tabActif === 'zones')    c.innerHTML = renderZones();
+  if(tabActif === 'users')    c.innerHTML = renderUsers();
+}
+
+// ── Tab Hôtel ─────────────────────────────────────────────────────────────────
+function renderHotel() {
+  return `
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Informations de l'hôtel</div>
+        <div class="section-sub">Ces informations apparaissent dans toutes les interfaces</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <!-- Logo -->
+      <div class="form-group">
+        <label class="form-label">Logo de l'hôtel</label>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;">
+          <div id="logo-preview" style="width:64px;height:64px;border-radius:10px;border:1px solid var(--cb);
+            background:#F5F0F0;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
+            <span style="font-size:24px;">🏨</span>
+          </div>
+          <div style="flex:1;">
+            <label for="logo-input" class="btn btn-outline" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin-bottom:6px;">
+              📁 Choisir un logo
+            </label>
+            <input type="file" id="logo-input" accept="image/*" style="display:none;" onchange="previewLogo(event)">
+            <div style="font-size:11px;color:var(--tl);">PNG, JPG · Recommandé : 200×200px</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nom de l'hôtel</label>
+        <input class="form-input" id="hotel-nom-input" value="${profil.hotel_nom||''}" placeholder="Nom de l'hôtel">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nombre d'étages</label>
+          <input class="form-input" type="number" id="hotel-etages" value="3" placeholder="3">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nombre de chambres</label>
+          <input class="form-input" type="number" id="hotel-chambres" value="${Object.keys(chambresData).length}" placeholder="30" readonly style="background:#F0F0F0;">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="sauvegarderHotel()">💾 Enregistrer</button>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Résumé de configuration</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="background:var(--cream);border-radius:8px;padding:12px;border:0.5px solid var(--cb);text-align:center;">
+          <div style="font-size:28px;font-weight:700;color:var(--gd);">${Object.keys(chambresData).length}</div>
+          <div style="font-size:12px;color:var(--tl);">Chambres</div>
+        </div>
+        <div style="background:var(--cream);border-radius:8px;padding:12px;border:0.5px solid var(--cb);text-align:center;">
+          <div style="font-size:28px;font-weight:700;color:var(--gold);">${Object.keys(zonesData).length}</div>
+          <div style="font-size:12px;color:var(--tl);">Zones</div>
+        </div>
+        <div style="background:var(--cream);border-radius:8px;padding:12px;border:0.5px solid var(--cb);text-align:center;">
+          <div style="font-size:28px;font-weight:700;color:#2C3E6B;">${Object.keys(staffData).length}</div>
+          <div style="font-size:12px;color:var(--tl);">Utilisateurs</div>
+        </div>
+        <div style="background:var(--cream);border-radius:8px;padding:12px;border:0.5px solid var(--cb);text-align:center;">
+          <div style="font-size:28px;font-weight:700;color:var(--red);">${Object.values({...chambresData}).filter(c=>c.statut==='occupee').length}</div>
+          <div style="font-size:12px;color:var(--tl);">Occupées</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Tab Chambres ──────────────────────────────────────────────────────────────
+function renderChambres() {
+  const vals = Object.entries(chambresData)
+    .map(([k,v]) => ({id:k,...v}))
+    .sort((a,b) => a.num - b.num);
+
+  const parEtage = {};
+  vals.forEach(c => {
+    if(!parEtage[c.etage]) parEtage[c.etage] = [];
+    parEtage[c.etage].push(c);
+  });
+
+  const etagesHTML = Object.keys(parEtage).sort().map(e => `
+    <div class="section-card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Étage ${e}</div>
+          <div class="section-sub">${parEtage[e].length} chambre${parEtage[e].length>1?'s':''}</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="item-list">
+          ${parEtage[e].map(c => `
+            <div class="item-row">
+              <div class="item-icon">🚪</div>
+              <div class="item-info">
+                <div class="item-name">Chambre ${c.num}</div>
+                <div class="item-sub">${TYPES[c.type]||c.type} · Étage ${c.etage}</div>
+              </div>
+              <div class="item-actions">
+                <div class="icon-btn" onclick="ouvrirEditChambre('${c.id}')">✏️</div>
+                <div class="icon-btn" onclick="supprimerChambre('${c.id}')">🗑️</div>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>`).join('');
+
+  return `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+      <button class="btn btn-gold btn-full" onclick="ouvrirModalChambre()">+ Ajouter une chambre</button>
+      <button class="btn btn-primary btn-full" onclick="ouvrirGenerationRapide()">⚡ Génération rapide</button>
+    </div>
+    ${etagesHTML || '<div style="text-align:center;padding:32px;color:var(--tl);">Aucune chambre configurée</div>'}`;
+}
+
+// ── Tab Zones ─────────────────────────────────────────────────────────────────
+function renderZones() {
+  const vals = Object.entries(zonesData).map(([k,v]) => ({id:k,...v}));
+  const ZONE_ICONS = { couloir:'🏢', lingerie:'🧺', sport:'🏋', lobby:'🚪', piscine:'🏊', spa:'💆' };
+
+  return `
+    <button class="btn btn-gold btn-full" onclick="ouvrirModalZone()">+ Ajouter une zone</button>
+    <div class="section-card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Zones communes</div>
+          <div class="section-sub">${vals.length} zone${vals.length>1?'s':''} configurée${vals.length>1?'s':''}</div>
+        </div>
+      </div>
+      <div class="section-body">
+        ${vals.length ? `
+          <div class="item-list">
+            ${vals.map(z => `
+              <div class="item-row">
+                <div class="item-icon">${ZONE_ICONS[z.type]||'📍'}</div>
+                <div class="item-info">
+                  <div class="item-name">${z.nom}</div>
+                  <div class="item-sub">${z.type} · Étage ${z.etage}</div>
+                </div>
+                <div class="item-actions">
+                  <div class="icon-btn" onclick="supprimerZone('${z.id}')">🗑️</div>
+                </div>
+              </div>`).join('')}
+          </div>` : '<div style="text-align:center;padding:24px;color:var(--tl);">Aucune zone configurée</div>'}
+      </div>
+    </div>`;
+}
+
+// ── Tab Users ─────────────────────────────────────────────────────────────────
+function renderUsers() {
+  const ROLE_LABELS = {
+    directeur:'Directeur', gouv_generale:'Gouvernante Générale',
+    gouv_etage:"Gouvernante d'étage", staff:'Staff', reception:'Réception', maintenance:'Maintenance'
+  };
+  const ROLE_CLASS = {
+    directeur:'rb-directeur', gouv_generale:'rb-gouv-gen', gouv_etage:'rb-gouv-etage',
+    staff:'rb-staff', reception:'rb-reception', maintenance:'rb-maintenance'
+  };
+
+  // Récupérer users depuis staffData + profil directeur
+  const users = Object.entries(staffData).map(([k,v]) => ({id:k,...v}));
+
+  return `
+    <button class="btn btn-gold btn-full" onclick="ouvrirModalUser()">+ Ajouter un utilisateur</button>
+    <div class="section-card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Utilisateurs actifs</div>
+          <div class="section-sub">${users.length} utilisateur${users.length>1?'s':''}</div>
+        </div>
+      </div>
+      <div class="section-body">
+        ${users.length ? `
+          <div class="item-list">
+            ${users.map(u => `
+              <div class="item-row">
+                <div style="width:36px;height:36px;border-radius:50%;background:var(--gold-light);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--gold-dark);flex-shrink:0;">
+                  ${(u.nom||'?').charAt(0)}
+                </div>
+                <div class="item-info">
+                  <div class="item-name">${u.nom||'—'}</div>
+                  <div class="item-sub">${u.email||'—'}</div>
+                </div>
+                <span class="role-badge ${ROLE_CLASS[u.role]||''}">${ROLE_LABELS[u.role]||u.role}</span>
+              </div>`).join('')}
+          </div>` : '<div style="text-align:center;padding:24px;color:var(--tl);">Aucun utilisateur configuré</div>'}
+      </div>
+    </div>`;
+}
+
+const TYPES = { simple:'Simple', double:'Double', suite:'Suite' };
+
+// ── Logo ──────────────────────────────────────────────────────────────────────
+let logoBase64 = null;
+
+window.previewLogo = (event) => {
+  const file = event.target.files[0];
+  if(!file) return;
+  if(file.size > 500000) { showToast('⚠ Logo trop lourd — max 500KB'); return; }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    logoBase64 = e.target.result;
+    const preview = document.getElementById('logo-preview');
+    preview.innerHTML = `<img src="${logoBase64}" style="width:100%;height:100%;object-fit:cover;">`;
+  };
+  reader.readAsDataURL(file);
+};
+
+function chargerLogoExistant() {
+  const logo = profil.hotel_logo;
+  if(logo) {
+    const preview = document.getElementById('logo-preview');
+    if(preview) preview.innerHTML = `<img src="${logo}" style="width:100%;height:100%;object-fit:cover;">`;
+  }
+}
+
+// ── Actions Hôtel ─────────────────────────────────────────────────────────────
+window.sauvegarderHotel = async () => {
+  const nom = document.getElementById('hotel-nom-input').value.trim();
+  if(!nom) { showToast('⚠ Entrez le nom de l\'hôtel'); return; }
+
+  const updateData = { nom };
+  if(logoBase64) updateData.logo = logoBase64;
+
+  await update(ref(db, `hotels/${profil.hotel_id}`), updateData);
+  await update(ref(db, `users/${profil.uid}`), {
+    hotel_nom: nom,
+    ...(logoBase64 ? { hotel_logo: logoBase64 } : {})
+  });
+
+  profil.hotel_nom  = nom;
+  if(logoBase64) profil.hotel_logo = logoBase64;
+  document.getElementById('hotel-name').textContent = nom;
+  showToast('✅ Hôtel mis à jour');
+};
+
+// ── Génération rapide chambres ────────────────────────────────────────────────
+window.selGenType = (type) => {
+  document.getElementById('gen-type').value = type;
+  ['double','simple','suite'].forEach(t => {
+    const btn = document.getElementById(`gen-type-${t}`);
+    if(t === type) {
+      btn.style.background = 'var(--anthracite)';
+      btn.style.borderColor = 'var(--anthracite)';
+      btn.style.color = '#fff';
+      btn.style.borderWidth = '2px';
+    } else {
+      btn.style.background = '#FDFCFA';
+      btn.style.borderColor = '#EDE8DC';
+      btn.style.color = '#1A1714';
+      btn.style.borderWidth = '1px';
+    }
+  });
+  updateApercu();
+};
+
+window.selChType = (type) => {
+  document.getElementById('ch-type').value = type;
+  ['simple','double','suite'].forEach(t => {
+    const btn = document.getElementById(`ch-type-${t}`);
+    if(t === type) {
+      btn.style.background = 'var(--anthracite)';
+      btn.style.borderColor = 'var(--anthracite)';
+      btn.style.color = '#fff';
+      btn.style.borderWidth = '2px';
+    } else {
+      btn.style.background = '#FDFCFA';
+      btn.style.borderColor = '#EDE8DC';
+      btn.style.color = '#1A1714';
+      btn.style.borderWidth = '1px';
+    }
+  });
+};
+window.ouvrirGenerationRapide = () => {
+  updateApercu();
+  document.getElementById('modal-generation').classList.add('open');
+};
+
+function updateApercu() {
+  const etages    = parseInt(document.getElementById('gen-etages')?.value) || 0;
+  const parEtage  = parseInt(document.getElementById('gen-par-etage')?.value) || 0;
+  const debut     = parseInt(document.getElementById('gen-debut')?.value) || 101;
+  const total     = etages * parEtage;
+  const apercu    = document.getElementById('gen-apercu');
+  if(!apercu) return;
+  if(etages && parEtage) {
+    const suffixe = debut % 100;
+    const exemples = [];
+    for(let e = 1; e <= Math.min(etages, 3); e++) {
+      const first = e * 100 + suffixe;
+      const last  = first + parEtage - 1;
+      exemples.push(`Étage ${e} : ${first} → ${last}`);
+    }
+    if(etages > 3) exemples.push(`... jusqu'à l'étage ${etages}`);
+    apercu.innerHTML = `<strong>${total} chambres seront créées</strong><br>${exemples.join('<br>')}`;
+    apercu.style.display = 'block';
+  } else {
+    apercu.style.display = 'none';
+  }
+}
+
+// Mettre à jour l'aperçu en temps réel
+document.addEventListener('input', e => {
+  if(['gen-etages','gen-par-etage','gen-debut'].includes(e.target.id)) updateApercu();
+});
+
+window.genererChambres = async () => {
+  const etages   = parseInt(document.getElementById('gen-etages').value);
+  const parEtage = parseInt(document.getElementById('gen-par-etage').value);
+  const debut    = parseInt(document.getElementById('gen-debut').value);
+  const type     = document.getElementById('gen-type').value;
+
+  if(!etages || !parEtage || !debut) { showToast('⚠ Remplissez tous les champs'); return; }
+  if(etages * parEtage > 300) { showToast('⚠ Maximum 300 chambres à la fois'); return; }
+
+  const total = etages * parEtage;
+  showToast(`⚡ Génération de ${total} chambres...`);
+
+  // Convention hôtelière : étage × 100 + numéro (ex: étage 2 → 201, 202...)
+  // Le numéro de départ définit le suffixe (ex: 101 → suffixe 01)
+  const suffixeDebut = debut % 100; // ex: 101 → 1
+  const batch = {};
+  for(let e = 1; e <= etages; e++) {
+    for(let n = 0; n < parEtage; n++) {
+      const num = e * 100 + suffixeDebut + n;
+      batch[num] = {
+        num, etage: e, type,
+        statut: 'sale',
+        assignee_id: '', assignee_nom: '', observation: ''
+      };
+    }
+  }
+
+  // Écrire toutes les chambres en une fois
+  const { ref: fbRef, set: fbSet } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+  await fbSet(fbRef(db, `hotels/${profil.hotel_id}/chambres`), batch);
+
+  closeModal('modal-generation');
+  showToast(`✅ ${total} chambres générées !`);
+};
+
+// ── Actions Chambres ──────────────────────────────────────────────────────────
+window.ouvrirModalChambre = (id = null) => {
+  chambreEditId = id;
+  document.getElementById('modal-ch-title').textContent = id ? 'Modifier la chambre' : 'Ajouter une chambre';
+  if(id && chambresData[id]) {
+    const c = chambresData[id];
+    document.getElementById('ch-num').value   = c.num;
+    document.getElementById('ch-etage').value = c.etage;
+    document.getElementById('ch-type').value  = c.type;
+  } else {
+    document.getElementById('ch-num').value   = '';
+    document.getElementById('ch-etage').value = '';
+    document.getElementById('ch-type').value  = 'double';
+  }
+  document.getElementById('modal-chambre').classList.add('open');
+};
+
+window.ouvrirEditChambre = (id) => ouvrirModalChambre(id);
+
+window.sauvegarderChambre = async () => {
+  const num   = parseInt(document.getElementById('ch-num').value);
+  const etage = parseInt(document.getElementById('ch-etage').value);
+  const type  = document.getElementById('ch-type').value;
+  if(!num || !etage) { showToast('⚠ Remplissez tous les champs'); return; }
+
+  const data = { num, etage, type, statut:'sale', assignee_id:'', assignee_nom:'', observation:'' };
+  const path = chambreEditId || num.toString();
+  await set(ref(db, `hotels/${profil.hotel_id}/chambres/${path}`), chambreEditId ? {...chambresData[chambreEditId], ...data} : data);
+  closeModal('modal-chambre');
+  showToast(chambreEditId ? '✅ Chambre mise à jour' : '✅ Chambre ajoutée');
+  chambreEditId = null;
+};
+
+window.supprimerChambre = (id) => {
+  confirmerSuppression(
+    `Supprimer la chambre ${chambresData[id]?.num} ?`,
+    `Cette action est irréversible.`,
+    async () => {
+      await remove(ref(db, `hotels/${profil.hotel_id}/chambres/${id}`));
+      showToast('🗑️ Chambre supprimée');
+    }
+  );
+};
+
+// ── Actions Zones ─────────────────────────────────────────────────────────────
+window.ouvrirModalZone = () => {
+  zoneEditId = null;
+  document.getElementById('zone-nom').value   = '';
+  document.getElementById('zone-type').value  = 'couloir';
+  document.getElementById('zone-etage').value = '0';
+  document.getElementById('modal-zone').classList.add('open');
+};
+
+window.sauvegarderZone = async () => {
+  const nom   = document.getElementById('zone-nom').value.trim();
+  const type  = document.getElementById('zone-type').value;
+  const etage = parseInt(document.getElementById('zone-etage').value) || 0;
+  if(!nom) { showToast('⚠ Entrez le nom de la zone'); return; }
+  await push(ref(db, `hotels/${profil.hotel_id}/zones`), { nom, type, etage, statut:'a_faire' });
+  closeModal('modal-zone');
+  showToast('✅ Zone ajoutée');
+};
+
+window.supprimerZone = (id) => {
+  confirmerSuppression(
+    `Supprimer la zone "${zonesData[id]?.nom}" ?`,
+    `Cette action est irréversible.`,
+    async () => {
+      await remove(ref(db, `hotels/${profil.hotel_id}/zones/${id}`));
+      showToast('🗑️ Zone supprimée');
+    }
+  );
+};
+
+// ── Actions Users ─────────────────────────────────────────────────────────────
+window.ouvrirModalUser = () => {
+  document.getElementById('user-nom-input').value = '';
+  document.getElementById('user-email').value     = '';
+  document.getElementById('user-pass').value      = '';
+  document.getElementById('user-role').value      = 'staff';
+  document.getElementById('etage-group').style.display = 'none';
+  document.getElementById('modal-user').classList.add('open');
+};
+
+document.addEventListener('change', e => {
+  if(e.target.id === 'user-role') {
+    document.getElementById('etage-group').style.display =
+      e.target.value === 'gouv_etage' ? 'block' : 'none';
+  }
+});
+
+window.sauvegarderUser = async () => {
+  const nom   = document.getElementById('user-nom-input').value.trim();
+  const email = document.getElementById('user-email').value.trim();
+  const pass  = document.getElementById('user-pass').value;
+  const role  = document.getElementById('user-role').value;
+  const etage = parseInt(document.getElementById('user-etage').value) || null;
+
+  if(!nom || !email || !pass) { showToast('⚠ Remplissez tous les champs'); return; }
+  if(pass.length < 6) { showToast('⚠ Mot de passe minimum 6 caractères'); return; }
+
+  try {
+    // Utiliser une 2ème instance Firebase pour ne pas déconnecter le directeur
+    const app2  = initApp2({
+      apiKey:            "AIzaSyCse3b45dUFvI7weTAOogGgJhLvYAHiuUE",
+      authDomain:        "hotelstaff-prod.firebaseapp.com",
+      projectId:         "hotelstaff-prod",
+    }, "secondary");
+    const auth2 = getAuth(app2);
+    const cred  = await createUserWithEmailAndPassword(auth2, email, pass);
+    const uid   = cred.user.uid;
+    await auth2.signOut(); // Déconnecter immédiatement la 2ème instance
+    const userData = { nom, email, role, hotel_id: profil.hotel_id, hotel_nom: profil.hotel_nom };
+    if(etage && role === 'gouv_etage') userData.etage = etage;
+
+    await set(ref(db, `users/${uid}`), userData);
+    await set(ref(db, `hotels/${profil.hotel_id}/staff/${uid}`), { nom, email, role, online: false });
+
+    closeModal('modal-user');
+    showToast(`✅ Compte créé pour ${nom}`);
+  } catch(e) {
+    if(e.code === 'auth/email-already-in-use') showToast('⚠ Email déjà utilisé');
+    else showToast('⚠ Erreur : ' + e.message);
+  }
+};
+
+// ── Confirmation suppression ──────────────────────────────────────────────────
+let _confirmCallback = null;
+function confirmerSuppression(titre, message, callback) {
+  _confirmCallback = callback;
+  document.getElementById('confirm-title').textContent   = titre;
+  document.getElementById('confirm-message').textContent = message;
+  document.getElementById('modal-confirm').classList.add('open');
+}
+window.executerSuppression = async () => {
+  document.getElementById('modal-confirm').classList.remove('open');
+  if(_confirmCallback) await _confirmCallback();
+  _confirmCallback = null;
+};
+window.annulerSuppression = () => {
+  document.getElementById('modal-confirm').classList.remove('open');
+  _confirmCallback = null;
+};
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+window.doLogout = async () => { await logout(); window.location.href = 'login.html'; };
+window.closeModal = (id, e) => { if(e && e.target.id !== id) return; document.getElementById(id).classList.remove('open'); };
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>

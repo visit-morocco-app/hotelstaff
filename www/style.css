@@ -1,0 +1,317 @@
+/* ─────────────────────────────────────────────
+   style.css — HotelStaff Design System
+   Variables + composants réutilisables
+───────────────────────────────────────────── */
+
+/* ── Variables globales ── */
+:root {
+  /* Couleurs principales */
+  --teal:         #0F6E56;
+  --teal-mid:     #1D9E75;
+  --teal-light:   #E1F5EE;
+  --amber:        #BA7517;
+  --amber-light:  #FAEEDA;
+  --red:          #A32D2D;
+  --red-light:    #FCEBEB;
+  --purple:       #534AB7;
+  --purple-light: #EEEDFE;
+  --gray:         #6B6B6B;
+  --gray-light:   #F1EFE8;
+
+  /* Couleurs par rôle */
+  --role-directeur:     #534AB7;
+  --role-gouv-generale: #0F6E56;
+  --role-gouv-etage:    #1D9E75;
+  --role-staff:         #BA7517;
+  --role-reception:     #2563EB;
+  --role-maintenance:   #A32D2D;
+
+  /* Neutres */
+  --bg:      #F8F7F4;
+  --surface: #FFFFFF;
+  --border:  rgba(0,0,0,0.08);
+  --text:    #1A1A1A;
+  --muted:   #6B6B6B;
+
+  /* Statuts chambre */
+  --statut-sale:      #A32D2D;
+  --statut-en_cours:  #BA7517;
+  --statut-prete:     #1D9E75;
+  --statut-validee:   #0F6E56;
+  --statut-occupee:   #6B6B6B;
+
+  /* Spacing & radius */
+  --radius:    12px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.5;
+}
+button { font-family: inherit; cursor: pointer; }
+input, textarea { font-family: inherit; }
+a { text-decoration: none; color: inherit; }
+
+/* ── Header sticky ── */
+.hs-header {
+  background: var(--surface);
+  border-bottom: 0.5px solid var(--border);
+  padding: 13px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  gap: 12px;
+}
+.hs-logo {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.hs-logo svg { width: 18px; height: 18px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; }
+.hs-hotel-name { font-size: 15px; font-weight: 600; }
+.hs-header-left { display: flex; align-items: center; gap: 10px; }
+.hs-header-right { display: flex; align-items: center; gap: 8px; }
+
+/* ── Badges rôle ── */
+.hs-badge {
+  font-size: 11px; font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.hs-badge-directeur    { background: var(--purple-light); color: var(--purple); }
+.hs-badge-gouv-gen     { background: var(--teal-light);   color: var(--teal);   }
+.hs-badge-gouv-etage   { background: var(--teal-light);   color: var(--teal-mid); }
+.hs-badge-staff        { background: var(--amber-light);  color: var(--amber);  }
+.hs-badge-reception    { background: #DBEAFE;             color: #1D4ED8;       }
+.hs-badge-maintenance  { background: var(--red-light);    color: var(--red);    }
+
+/* ── Boutons ── */
+.hs-btn {
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: opacity 0.15s, transform 0.1s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.hs-btn:active { transform: scale(0.97); }
+.hs-btn-primary   { background: var(--teal); color: #fff; }
+.hs-btn-secondary { background: var(--surface); color: var(--text); border: 0.5px solid var(--border); }
+.hs-btn-danger    { background: var(--red-light); color: var(--red); }
+.hs-btn-amber     { background: var(--amber-light); color: var(--amber); }
+.hs-btn-ghost     { background: none; color: var(--muted); border: 0.5px solid var(--border); font-size: 13px; padding: 6px 12px; }
+.hs-btn-full      { width: 100%; justify-content: center; }
+
+/* ── Cards ── */
+.hs-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 0.5px solid var(--border);
+  padding: 16px;
+}
+
+/* ── Statuts chambre ── */
+.hs-statut {
+  font-size: 11px; font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 20px;
+  display: inline-block;
+  white-space: nowrap;
+}
+.hs-statut-sale     { background: var(--red-light);   color: var(--red);      }
+.hs-statut-en_cours { background: var(--amber-light); color: var(--amber);    }
+.hs-statut-prete    { background: var(--teal-light);  color: var(--teal-mid); }
+.hs-statut-validee  { background: var(--teal-light);  color: var(--teal);     }
+.hs-statut-occupee  { background: var(--gray-light);  color: var(--gray);     }
+
+/* Bordure gauche par statut */
+.hs-border-sale     { border-left: 3px solid var(--statut-sale)     !important; }
+.hs-border-en_cours { border-left: 3px solid var(--statut-en_cours) !important; }
+.hs-border-prete    { border-left: 3px solid var(--statut-prete)    !important; }
+.hs-border-validee  { border-left: 3px solid var(--statut-validee)  !important; }
+.hs-border-occupee  { border-left: 3px solid var(--statut-occupee)  !important; }
+
+/* ── Stats grid ── */
+.hs-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 10px;
+  padding: 14px 16px;
+}
+.hs-stat {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  border: 0.5px solid var(--border);
+  padding: 12px 14px;
+}
+.hs-stat-num   { font-size: 28px; font-weight: 700; line-height: 1; }
+.hs-stat-label { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+/* ── Filtres ── */
+.hs-filters {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  padding: 0 16px 12px;
+}
+.hs-filter {
+  font-size: 12px; padding: 5px 14px;
+  border-radius: 20px;
+  border: 0.5px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  transition: all 0.15s;
+}
+.hs-filter.active { background: var(--text); color: #fff; border-color: var(--text); }
+
+/* ── Grille chambres ── */
+.hs-chambres-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  padding: 0 16px 100px;
+}
+.hs-chambre-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 0.5px solid var(--border);
+  padding: 14px;
+  cursor: pointer;
+  transition: transform 0.1s;
+  position: relative;
+}
+.hs-chambre-card:active { transform: scale(0.97); }
+.hs-chambre-num    { font-size: 22px; font-weight: 700; }
+.hs-chambre-etage  { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+.hs-chambre-assign { font-size: 11px; color: var(--muted); margin-top: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hs-incident-dot   { position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; background: var(--red); border-radius: 50%; }
+
+/* ── Liste items (staff / incidents) ── */
+.hs-list { display: flex; flex-direction: column; gap: 8px; padding: 0 16px 100px; }
+.hs-list-item {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 0.5px solid var(--border);
+  padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+
+/* ── Progress bar ── */
+.hs-progress-wrap  { padding: 0 16px; margin-bottom: 4px; }
+.hs-progress-bar   { height: 5px; background: var(--teal-light); border-radius: 3px; overflow: hidden; }
+.hs-progress-fill  { height: 100%; background: var(--teal); border-radius: 3px; transition: width 0.4s ease; }
+.hs-progress-label { font-size: 12px; color: var(--muted); padding: 5px 16px 12px; }
+
+/* ── Section title ── */
+.hs-section-title {
+  font-size: 12px; font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 14px 16px 6px;
+}
+
+/* ── Input ── */
+.hs-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  background: var(--bg);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.hs-input:focus { border-color: var(--teal); }
+
+/* ── Modal bottom sheet ── */
+.hs-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 200;
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.hs-modal-overlay.open { opacity: 1; pointer-events: all; }
+.hs-modal {
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  padding: 20px 20px 32px;
+  width: 100%; max-width: 500px;
+  transform: translateY(24px);
+  transition: transform 0.25s ease;
+}
+.hs-modal-overlay.open .hs-modal { transform: translateY(0); }
+.hs-modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 18px; }
+.hs-modal-title  { font-size: 18px; font-weight: 600; margin-bottom: 14px; }
+.hs-modal-grid   { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+
+/* ── Toast ── */
+.hs-toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+  background: var(--text); color: #fff;
+  padding: 10px 22px;
+  border-radius: 20px;
+  font-size: 13px; font-weight: 500;
+  z-index: 500; white-space: nowrap;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.hs-toast.show { opacity: 1; }
+
+/* ── Login screen ── */
+.hs-login {
+  position: fixed; inset: 0;
+  background: var(--surface);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px;
+  z-index: 300;
+}
+.hs-login-logo {
+  width: 60px; height: 60px;
+  background: var(--teal);
+  border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 22px;
+}
+.hs-login-logo svg { width: 30px; height: 30px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; }
+.hs-login-title { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+.hs-login-sub   { font-size: 14px; color: var(--muted); margin-bottom: 36px; }
+.hs-login-form  { width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 12px; }
+.hs-login-error { font-size: 13px; color: var(--red); text-align: center; display: none; margin-top: 4px; }
+.hs-login-error.show { display: block; }
+
+/* ── Guard screen (accès refusé) ── */
+.hs-guard {
+  position: fixed; inset: 0;
+  background: var(--surface);
+  display: none;
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px; text-align: center;
+}
+.hs-guard.show { display: flex; }
+.hs-guard-icon  { font-size: 48px; margin-bottom: 16px; }
+.hs-guard-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+.hs-guard-sub   { font-size: 14px; color: var(--muted); }
+
+/* ── Responsive tablette ── */
+@media (min-width: 600px) {
+  .hs-chambres-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+  .hs-stats { grid-template-columns: repeat(5, 1fr); }
+}
