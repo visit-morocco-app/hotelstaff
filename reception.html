@@ -40,6 +40,8 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 .tab.active { color:var(--blue); border-bottom:2px solid var(--blue); }
 .tab-count { display:inline-block; background:var(--blue-light); color:var(--blue); font-size:10px; padding:1px 6px; border-radius:10px; margin-left:4px; }
 .tab.active .tab-count { background:var(--blue); color:#fff; }
+.tab-count.alert { background:#C0504D !important; color:#fff !important; animation:pulse-tab 1.5s infinite; }
+@keyframes pulse-tab { 0%,100% { transform:scale(1); } 50% { transform:scale(1.2); } }
 
 /* Content */
 .content { padding:12px; display:flex; flex-direction:column; gap:8px; padding-bottom:30px; }
@@ -267,7 +269,10 @@ function updateStats() {
   document.getElementById('count-occ').textContent   = occupees;
   document.getElementById('count-sale').textContent  = nettoyage;
   const nettoyage2 = vals.filter(c => ['sale','en_cours','prete'].includes(c.statut)).length;
-  document.getElementById('tc-dispo').textContent     = dispo;
+  const dispoEl = document.getElementById('tc-dispo');
+  dispoEl.textContent = dispo;
+  dispoEl.className = dispo > 0 ? 'tab-count alert' : 'tab-count';
+
   document.getElementById('tc-occ').textContent       = occupees;
   document.getElementById('tc-nettoyage').textContent = nettoyage2;
   document.getElementById('tc-toutes').textContent    = vals.length;

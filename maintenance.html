@@ -39,6 +39,8 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 .tab.active { color:var(--brown); border-bottom:2px solid var(--brown); }
 .tab-count { display:inline-block; background:#F5EDD9; color:var(--brown); font-size:10px; padding:1px 6px; border-radius:10px; margin-left:4px; }
 .tab.active .tab-count { background:var(--brown); color:#fff; }
+.tab-count.alert { background:#C0504D !important; color:#fff !important; animation:pulse-tab 1.5s infinite; }
+@keyframes pulse-tab { 0%,100% { transform:scale(1); } 50% { transform:scale(1.2); } }
 
 /* Content */
 .content { padding:12px; display:flex; flex-direction:column; gap:8px; padding-bottom:30px; }
@@ -241,9 +243,15 @@ function updateStats() {
   document.getElementById('count-ouvert').textContent  = ouvert;
   document.getElementById('count-encours').textContent = encours;
   document.getElementById('count-resolu').textContent  = resolu;
-  document.getElementById('tc-ouvert').textContent     = ouvert;
-  document.getElementById('tc-encours').textContent    = encours;
-  document.getElementById('tc-resolu').textContent     = resolu;
+  const ouvertEl = document.getElementById('tc-ouvert');
+  ouvertEl.textContent = ouvert;
+  ouvertEl.className = ouvert > 0 ? 'tab-count alert' : 'tab-count';
+
+  const encoursEl = document.getElementById('tc-encours');
+  encoursEl.textContent = encours;
+  encoursEl.className = encours > 0 ? 'tab-count alert' : 'tab-count';
+
+  document.getElementById('tc-resolu').textContent = resolu;
 }
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────

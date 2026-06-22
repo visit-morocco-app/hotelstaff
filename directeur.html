@@ -334,6 +334,15 @@ function updateKPIs() {
   document.getElementById('kpi-val-pct').textContent     = `${Math.round(validees/total*100)||0}% prêtes`;
   document.getElementById('taux-occ').textContent        = tauxOcc + '%';
   document.getElementById('taux-sub').textContent        = `${occupees} occupées sur ${total} chambres`;
+
+  // Temps moyen global de nettoyage
+  const terminees = ch.filter(c => c.started_at && c.finished_at);
+  if(terminees.length) {
+    const tpsTotal = terminees.reduce((acc, c) => acc + (c.finished_at - c.started_at), 0);
+    const tpsMoyen = Math.round(tpsTotal / terminees.length / 60000);
+    document.getElementById('taux-sub').textContent =
+      `${occupees} occupées · ⏱ Moy. nettoyage : ${tpsMoyen} min`;
+  }
 }
 
 function updateStatuts() {
@@ -399,18 +408,34 @@ function updateStaff() {
   }
 
   const staffPerf = staffVals.map(s => {
-    const mesCh   = ch.filter(c => c.assignee_nom === s.nom);
-    const pretes  = mesCh.filter(c => c.statut === 'prete' || c.statut === 'validee').length;
-    const pct     = mesCh.length ? Math.round(pretes / mesCh.length * 100) : 0;
-    return { ...s, total: mesCh.length, pretes, pct };
+    const mesCh  = ch.filter(c => c.assignee_nom === s.nom);
+    const pretes = mesCh.filter(c => c.statut === 'prete' || c.statut === 'validee').length;
+    const pct    = mesCh.length ? Math.round(pretes / mesCh.length * 100) : 0;
+
+    // Calcul temps moyen de nettoyage
+    const terminees = mesCh.filter(c => c.started_at && c.finished_at);
+    let tpsMoyen = null;
+    if(terminees.length) {
+      const total = terminees.reduce((acc, c) => acc + (c.finished_at - c.started_at), 0);
+      tpsMoyen = Math.round(total / terminees.length / 60000); // en minutes
+    }
+
+    return { ...s, total: mesCh.length, pretes, pct, tpsMoyen, nbTerminees: terminees.length };
   }).sort((a,b) => b.pct - a.pct);
 
   document.getElementById('staff-list').innerHTML = staffPerf.map(s => `
     <div class="staff-row">
       <div class="staff-avatar">${s.nom.charAt(0)}</div>
-      <div class="staff-name">${s.nom}</div>
-      <div class="staff-count">${s.pretes}/${s.total} ch.</div>
-      <div class="staff-pct" style="color:${s.pct===100?'var(--green)':s.pct>50?'var(--orange)':'var(--red)'};">${s.pct}%</div>
+      <div style="flex:1;">
+        <div class="staff-name">${s.nom}</div>
+        ${s.tpsMoyen !== null
+          ? `<div style="font-size:11px;color:var(--tl);margin-top:2px;">⏱ Moy. ${s.tpsMoyen} min/chambre</div>`
+          : `<div style="font-size:11px;color:var(--tl);margin-top:2px;">Pas encore de données</div>`}
+      </div>
+      <div style="text-align:right;">
+        <div class="staff-pct" style="color:${s.pct===100?'var(--green)':s.pct>50?'var(--orange)':'var(--red)'};">${s.pct}%</div>
+        <div style="font-size:11px;color:var(--tl);">${s.pretes}/${s.total} ch.</div>
+      </div>
     </div>`).join('');
 }
 

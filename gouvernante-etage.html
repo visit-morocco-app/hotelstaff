@@ -38,7 +38,9 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 .tabs { display:flex; border-bottom:0.5px solid var(--cb); background:#fff; }
 .tab { flex:1; text-align:center; padding:10px 0; font-size:13px; font-weight:500; cursor:pointer; color:var(--tl); border-bottom:2px solid transparent; transition:all 0.2s; border-top:none; border-left:none; border-right:none; background:none; }
 .tab.active { color:var(--gd); border-bottom:2px solid var(--gd); }
-.tab-count { display:inline-block; background:#F5EDD9; color:var(--gold-dark); font-size:10px; padding:1px 6px; border-radius:10px; margin-left:4px; }
+.tab-count { display:inline-block; background:#F5EDD9; color:var(--gold-dark); font-size:10px; padding:1px 6px; border-radius:10px; margin-left:4px; transition:all 0.2s; }
+.tab-count.alert { background:#C0504D; color:#fff; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.15); } }
 .tab.active .tab-count { background:var(--gd); color:var(--gold); }
 
 /* Content */
@@ -307,8 +309,11 @@ function render() {
   document.getElementById('prog-fill').style.width = pct + '%';
   document.getElementById('prog-pct').textContent  = pct + '%';
   document.getElementById('prog-sub').textContent  = `${validees} validée${validees>1?'s':''} · ${aControler.length} en attente de contrôle`;
-  document.getElementById('count-controle').textContent = aControler.length;
-  document.getElementById('count-toutes').textContent   = total;
+  const ctrlEl = document.getElementById('count-controle');
+  ctrlEl.textContent = aControler.length;
+  ctrlEl.className = aControler.length > 0 ? 'tab-count alert' : 'tab-count';
+
+  document.getElementById('count-toutes').textContent = total;
 
   const content = document.getElementById('content');
 
@@ -437,7 +442,9 @@ function updateZonesCount() {
   const monEtage = parseInt(profil.etage);
   const mesZones = Object.values(zonesData).filter(z => parseInt(z.etage) === monEtage || z.etage === 0);
   const aFaire = mesZones.filter(z => z.statut !== 'fait').length;
-  document.getElementById('count-zones').textContent = aFaire;
+  const zonesEl = document.getElementById('count-zones');
+  zonesEl.textContent = aFaire;
+  zonesEl.className = aFaire > 0 ? 'tab-count alert' : 'tab-count';
 }
 
 function renderZonesGE() {
@@ -502,7 +509,9 @@ function renderProblemes() {
     .filter(r => r.statut === 'ouvert' && parseInt(r.chambre) >= monEtage*100+1 && parseInt(r.chambre) <= monEtage*100+99);
 
   const total = incidents.length + ralentissements.length;
-  document.getElementById('count-problemes').textContent = total;
+  const probEl = document.getElementById('count-problemes');
+  probEl.textContent = total;
+  probEl.className = total > 0 ? 'tab-count alert' : 'tab-count';
 
   if(tabActif !== 'problemes') return;
 
