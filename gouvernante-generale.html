@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>HotelStaff — Gouvernante Générale</title>
 <link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
   --gold:#C9A96E; --gold-light:#F5EDD9; --gold-dark:#8B6914;
@@ -273,7 +274,13 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 
   <!-- Bouton soumettre -->
   <div class="submit-wrap">
-    <button class="submit-btn" id="submit-btn" onclick="soumettreShift()">Soumettre le shift</button>
+    <div style="display:flex;gap:8px;margin-bottom:8px;">
+      <button onclick="telechargerRapportShift()"
+        style="flex:0 0 auto;padding:14px 16px;border-radius:12px;background:#F5EDD9;color:#8B5E14;border:none;font-size:15px;font-weight:600;cursor:pointer;" title="Télécharger rapport shift">
+        📄
+      </button>
+      <button class="submit-btn" id="submit-btn" onclick="soumettreShift()" style="flex:1;">Soumettre le shift</button>
+    </div>
     <div class="submit-note" id="submit-note">En attente de validation</div>
   </div>
 
@@ -773,6 +780,184 @@ window.sauvegarderChambre = async () => {
 
 
 
+// ── Rapport PDF shift ────────────────────────────────────────────────────────
+window.telechargerRapportShift = () => {
+  if(!window.jspdf) { showToast('Chargement en cours...'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = 210; const M = 14;
+  let y = 0;
+
+  const GG    = [27, 58, 45];
+  const GOLD  = [196, 133, 58];
+  const GREY  = [245, 245, 243];
+  const DARK  = [26, 23, 20];
+  const MID   = [92, 83, 71];
+  const RED   = [192, 80, 77];
+  const GREEN = [45, 106, 63];
+  const WHITE = [255, 255, 255];
+  const BORDER= [237, 232, 220];
+
+  const shiftLabel = shiftActif === 'matin' ? 'Matin' : 'Soir';
+  const dateStr = new Date().toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  const heureStr = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+
+  // En-tete
+  doc.setFillColor(...GG);
+  doc.rect(0, 0, W, 35, 'F');
+  doc.setFillColor(...GOLD);
+  doc.rect(0, 33, W, 2, 'F');
+  doc.setTextColor(...WHITE);
+  doc.setFontSize(20); doc.setFont('helvetica', 'bold');
+  doc.text('RAPPORT DE SHIFT', M, 13);
+  doc.setFontSize(12); doc.setFont('helvetica', 'normal');
+  doc.text('Shift ' + shiftLabel, M, 21);
+  doc.text(profil.hotel_nom || '', M, 29);
+  doc.setFontSize(10);
+  doc.text(profil.nom || '', W-M, 13, { align:'right' });
+  doc.text('Gouvernante Generale', W-M, 20, { align:'right' });
+  doc.text(dateStr.charAt(0).toUpperCase() + dateStr.slice(1) + ' - ' + heureStr, W-M, 27, { align:'right' });
+  doc.text('', W-M, 33, { align:'right' });
+  y = 45;
+
+  const ch = Object.values(chambresData);
+  const zones = Object.values(zonesData);
+  const incidentsList = Object.values(incidentsData);
+  const total    = ch.filter(c => c.statut !== 'occupee').length;
+  const validees = ch.filter(c => c.statut === 'validee').length;
+  const pretes   = ch.filter(c => c.statut === 'prete').length;
+  const enCours  = ch.filter(c => c.statut === 'en_cours').length;
+  const sales    = ch.filter(c => c.statut === 'sale').length;
+  const occupees = ch.filter(c => c.statut === 'occupee').length;
+  const zonesOK  = zones.filter(z => z.statut === 'fait').length;
+  const taux     = total ? Math.round(validees/total*100) : 0;
+  const incOuverts = incidentsList.filter(i => i.statut !== 'resolu').length;
+
+  // Resume
+  doc.setFontSize(12); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GG);
+  doc.text('Resume du shift', M, y); y += 5;
+  doc.setFillColor(...GOLD); doc.rect(M, y, W-2*M, 0.5, 'F'); y += 5;
+
+  const resumeRows = [
+    ['Chambres a traiter (hors occupees)', String(total)],
+    ['Chambres validees', validees + ' / ' + total],
+    ['Chambres en cours de nettoyage', String(enCours)],
+    ['Chambres pretes (controle en attente)', String(pretes)],
+    ['Chambres sales (non traitees)', String(sales)],
+    ['Chambres occupees (hors perimetre)', String(occupees)],
+    ['Zones communes validees', zonesOK + ' / ' + zones.length],
+    ['Incidents en cours', String(incOuverts)],
+    ['Taux de completion', taux + '%'],
+  ];
+
+  resumeRows.forEach(([label, val], i) => {
+    doc.setFillColor(...(i%2===0 ? WHITE : GREY));
+    doc.rect(M, y, W-2*M, 7, 'F');
+    doc.setDrawColor(...BORDER); doc.setLineWidth(0.3);
+    doc.rect(M, y, W-2*M, 7, 'S');
+    doc.setFontSize(9); doc.setTextColor(...DARK);
+    doc.setFont('helvetica', 'normal'); doc.text(label, M+3, y+4.5);
+    doc.setFont('helvetica', 'bold');
+    const valColor = val === '100%' ? GREEN : val.includes('%') && parseInt(val)<50 ? RED : DARK;
+    doc.setTextColor(...valColor);
+    doc.text(val, W-M-3, y+4.5, { align:'right' });
+    y += 7;
+  });
+  y += 10;
+
+  // Etat chambres
+  doc.setFontSize(12); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GG);
+  doc.text('Etat detaille des chambres', M, y); y += 5;
+  doc.setFillColor(...GOLD); doc.rect(M, y, W-2*M, 0.5, 'F'); y += 5;
+
+  doc.setFillColor(...GG); doc.rect(M, y, W-2*M, 8, 'F');
+  doc.setTextColor(...WHITE); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+  doc.text('N', M+3, y+5);
+  doc.text('Type', M+22, y+5);
+  doc.text('Etage', M+48, y+5);
+  doc.text('Assignee a', M+68, y+5);
+  doc.text('Statut', W-M-3, y+5, { align:'right' });
+  y += 8;
+
+  const STATUTS = { sale:'Sale', en_cours:'En cours', prete:'Prete', validee:'Validee', occupee:'Occupee' };
+  const SCOL    = { sale:RED, en_cours:[224,139,20], prete:GREEN, validee:GREEN, occupee:MID };
+  const chSorted = [...ch].sort((a,b) => a.num - b.num);
+
+  chSorted.forEach((c, i) => {
+    if(y > 262) {
+      doc.setFillColor(...GG); doc.rect(0, 287, W, 10, 'F');
+      doc.setTextColor(...WHITE); doc.setFontSize(7);
+      doc.text('HotelStaff v1.0 - ' + (profil.hotel_nom||''), W/2, 293, { align:'center' });
+      doc.addPage(); y = 15;
+      doc.setFillColor(...GG); doc.rect(M, y, W-2*M, 8, 'F');
+      doc.setTextColor(...WHITE); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+      doc.text('N', M+3, y+5); doc.text('Type', M+22, y+5);
+      doc.text('Etage', M+48, y+5); doc.text('Assignee a', M+68, y+5);
+      doc.text('Statut', W-M-3, y+5, { align:'right' });
+      y += 8;
+    }
+    doc.setFillColor(...(i%2===0 ? WHITE : GREY));
+    doc.rect(M, y, W-2*M, 8, 'F');
+    doc.setDrawColor(...BORDER); doc.setLineWidth(0.2);
+    doc.rect(M, y, W-2*M, 8, 'S');
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(...DARK);
+    doc.text(String(c.num||''), M+3, y+5);
+    doc.text((c.type||'').charAt(0).toUpperCase()+(c.type||'').slice(1), M+22, y+5);
+    doc.text(String(c.etage||''), M+48, y+5);
+    doc.text((c.assignee_nom||'-').substring(0,20), M+68, y+5);
+    doc.setTextColor(...(SCOL[c.statut]||DARK));
+    doc.setFont('helvetica', 'bold');
+    doc.text(STATUTS[c.statut]||c.statut, W-M-3, y+5, { align:'right' });
+    y += 8;
+  });
+
+  y += 12;
+
+  // Signature
+  if(y > 240) { doc.addPage(); y = 20; }
+  doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GG);
+  doc.text('Validation et signature', M, y); y += 4;
+  doc.setFillColor(...GOLD); doc.rect(M, y, W-2*M, 0.5, 'F'); y += 8;
+
+  const sigW = (W - 2*M - 10) / 2;
+  doc.setDrawColor(...GG); doc.setLineWidth(0.5);
+  doc.rect(M, y, sigW, 30, 'S');
+  doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GG);
+  doc.text('Gouvernante Generale', M+sigW/2, y+6, { align:'center' });
+  doc.setFont('helvetica', 'normal'); doc.setTextColor(...MID);
+  doc.text(profil.nom||'', M+sigW/2, y+12, { align:'center' });
+  doc.text('Signature :', M+5, y+20);
+  doc.setDrawColor(...BORDER); doc.line(M+28, y+20, M+sigW-5, y+20);
+  doc.text('Date :', M+5, y+27);
+  doc.line(M+20, y+27, M+sigW-5, y+27);
+
+  const sigX2 = M + sigW + 10;
+  doc.setDrawColor(...GG); doc.setLineWidth(0.5);
+  doc.rect(sigX2, y, sigW, 30, 'S');
+  doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GG);
+  doc.text('Visa Direction', sigX2+sigW/2, y+6, { align:'center' });
+  doc.setFont('helvetica', 'normal'); doc.setTextColor(...MID);
+  doc.text('Directeur(trice)', sigX2+sigW/2, y+12, { align:'center' });
+  doc.text('Signature :', sigX2+5, y+20);
+  doc.setDrawColor(...BORDER); doc.line(sigX2+28, y+20, sigX2+sigW-5, y+20);
+  doc.text('Date :', sigX2+5, y+27);
+  doc.line(sigX2+20, y+27, sigX2+sigW-5, y+27);
+
+  // Footer
+  const pageCount = doc.getNumberOfPages();
+  for(let p = 1; p <= pageCount; p++) {
+    doc.setPage(p);
+    doc.setFillColor(...GG); doc.rect(0, 287, W, 10, 'F');
+    doc.setFillColor(...GOLD); doc.rect(0, 287, W, 1, 'F');
+    doc.setTextColor(...WHITE); doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+    doc.text('HotelStaff v1.0  |  ' + (profil.hotel_nom||'') + '  |  Shift ' + shiftLabel + ' du ' + dateStr, M, 293);
+    doc.text('Page ' + p + ' / ' + pageCount, W-M, 293, { align:'right' });
+  }
+
+  const date = new Date().toISOString().slice(0,10);
+  doc.save('rapport_shift_' + shiftActif + '_' + date + '.pdf');
+  showToast('Rapport telecharge !');
+};
 // ── Soumettre shift ───────────────────────────────────────────────────────────
 window.soumettreShift = async () => {
   const ch = Object.values(chambresData);

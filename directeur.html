@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HotelStaff — Directeur</title>
 <link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
   --anthracite:#3D2C5E; --anthracite-mid:#4E3A75;
@@ -453,8 +454,156 @@ function updateRapport() {
 }
 
 window.genererRapport = () => {
-  showToast('📄 Rapport en cours de génération...');
-  setTimeout(() => showToast('✅ Rapport téléchargé !'), 1500);
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = 210; const margin = 15;
+  let y = 20;
+
+  const purple = [61, 44, 94];
+  const gold   = [196, 133, 58];
+  const green  = [27, 58, 45];
+  const grey   = [242, 242, 240];
+  const dark   = [26, 23, 20];
+  const red    = [192, 80, 77];
+
+  // En-tête
+  doc.setFillColor(...purple);
+  doc.rect(0, 0, W, 30, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(18); doc.setFont('helvetica', 'bold');
+  doc.text('HotelStaff — Rapport Journalier', margin, 14);
+  doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+  doc.text(profil.hotel_nom || 'Hôtel', margin, 22);
+  doc.text(new Date().toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long', year:'numeric'}), W - margin, 22, { align: 'right' });
+
+  y = 42;
+
+  // KPIs
+  const ch = Object.values(chambresData);
+  const total     = ch.length;
+  const dispo     = ch.filter(c => c.statut === 'validee').length;
+  const occupees  = ch.filter(c => c.statut === 'occupee').length;
+  const nettoyage = ch.filter(c => ['sale','en_cours','prete'].includes(c.statut)).length;
+  const tauxOcc   = total ? Math.round(occupees / total * 100) : 0;
+  const incidents = Object.values(incidentsData);
+  const incOuverts = incidents.filter(i => i.statut !== 'resolu').length;
+  const terminees  = ch.filter(c => c.started_at && c.finished_at);
+  const tpsMoyen   = terminees.length
+    ? Math.round(terminees.reduce((a,c) => a + (c.finished_at - c.started_at), 0) / terminees.length / 60000)
+    : null;
+
+  // Section KPIs
+  doc.setFontSize(13); doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...purple);
+  doc.text('Indicateurs du jour', margin, y); y += 8;
+
+  const kpis = [
+    ['Chambres disponibles', dispo, green],
+    ['Chambres occupées', occupees, purple],
+    ['En nettoyage', nettoyage, [224, 139, 20]],
+    ['Incidents ouverts', incOuverts, incOuverts > 0 ? red : green],
+    ['Taux d\'occupation', tauxOcc + '%', purple],
+    ['Tps moyen nettoyage', tpsMoyen !== null ? tpsMoyen + ' min' : 'N/A', dark],
+  ];
+
+  const colW = (W - 2*margin) / 3;
+  kpis.forEach((kpi, i) => {
+    const col = i % 3;
+    const row = Math.floor(i / 3);
+    const x = margin + col * colW;
+    const ky = y + row * 22;
+    doc.setFillColor(...grey);
+    doc.roundedRect(x, ky, colW - 3, 18, 2, 2, 'F');
+    doc.setFontSize(16); doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...kpi[2]);
+    doc.text(String(kpi[1]), x + (colW-3)/2, ky + 9, { align: 'center' });
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...dark);
+    doc.text(kpi[0], x + (colW-3)/2, ky + 15, { align: 'center' });
+  });
+  y += Math.ceil(kpis.length / 3) * 22 + 10;
+
+  // Section Performance staff
+  doc.setFontSize(13); doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...purple);
+  doc.text('Performance staff', margin, y); y += 8;
+
+  const staffVals = Object.values(staffData).filter(s => s.role === 'staff');
+  if(staffVals.length) {
+    // En-tête tableau
+    doc.setFillColor(...purple);
+    doc.rect(margin, y, W - 2*margin, 7, 'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+    doc.text('Nom', margin + 3, y + 5);
+    doc.text('Chambres', margin + 70, y + 5, { align: 'center' });
+    doc.text('Complétion', margin + 110, y + 5, { align: 'center' });
+    doc.text('Tps moy.', margin + 150, y + 5, { align: 'center' });
+    y += 7;
+
+    staffVals.forEach((s, i) => {
+      const mesCh = ch.filter(c => c.assignee_nom === s.nom);
+      const pretes = mesCh.filter(c => c.statut === 'prete' || c.statut === 'validee').length;
+      const pct = mesCh.length ? Math.round(pretes / mesCh.length * 100) : 0;
+      const termS = mesCh.filter(c => c.started_at && c.finished_at);
+      const tps = termS.length
+        ? Math.round(termS.reduce((a,c) => a+(c.finished_at-c.started_at),0)/termS.length/60000) + ' min'
+        : 'N/A';
+
+      doc.setFillColor(...(i%2===0 ? [255,255,255] : grey));
+      doc.rect(margin, y, W - 2*margin, 8, 'F');
+      doc.setTextColor(...dark); doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+      doc.text(s.nom, margin + 3, y + 5);
+      doc.text(`${pretes}/${mesCh.length}`, margin + 70, y + 5, { align: 'center' });
+      doc.setTextColor(...(pct===100 ? green : pct>50 ? [224,139,20] : red));
+      doc.text(pct + '%', margin + 110, y + 5, { align: 'center' });
+      doc.setTextColor(...dark);
+      doc.text(tps, margin + 150, y + 5, { align: 'center' });
+      y += 8;
+    });
+    y += 10;
+  }
+
+  // Section Incidents
+  doc.setFontSize(13); doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...purple);
+  doc.text('Incidents du jour', margin, y); y += 8;
+
+  if(incidents.length) {
+    doc.setFillColor(...purple);
+    doc.rect(margin, y, W - 2*margin, 7, 'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+    doc.text('Chambre', margin + 3, y + 5);
+    doc.text('Description', margin + 30, y + 5);
+    doc.text('Statut', W - margin - 20, y + 5, { align: 'right' });
+    y += 7;
+
+    incidents.forEach((inc, i) => {
+      doc.setFillColor(...(i%2===0 ? [255,255,255] : grey));
+      doc.rect(margin, y, W - 2*margin, 8, 'F');
+      doc.setTextColor(...dark); doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+      doc.text(String(inc.chambre || ''), margin + 3, y + 5);
+      doc.text((inc.description || '').substring(0, 60), margin + 30, y + 5);
+      const statColor = inc.statut === 'resolu' ? green : inc.statut === 'en_cours' ? [224,139,20] : red;
+      doc.setTextColor(...statColor);
+      doc.text(inc.statut || '', W - margin - 3, y + 5, { align: 'right' });
+      y += 8;
+    });
+  } else {
+    doc.setFontSize(10); doc.setTextColor(...dark);
+    doc.text('Aucun incident ce jour.', margin, y); y += 8;
+  }
+  y += 10;
+
+  // Footer
+  doc.setFillColor(...purple);
+  doc.rect(0, 285, W, 12, 'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+  doc.text('HotelStaff v1.0 — Rapport généré le ' + new Date().toLocaleString('fr-FR'), W/2, 292, { align: 'center' });
+
+  // Télécharger
+  const date = new Date().toISOString().slice(0,10);
+  doc.save(`rapport_${profil.hotel_id || 'hotel'}_${date}.pdf`);
+  showToast('✅ Rapport téléchargé !');
 };
 
 window.doLogout = async () => { await logout(); window.location.href = 'login.html'; };
