@@ -303,6 +303,28 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
   </div>
 </div>
 
+<!-- Modal Bravo shift soumis -->
+<div class="modal-overlay" id="modal-bravo" style="z-index:300;">
+  <div class="modal" style="text-align:center;padding:28px 24px 36px;">
+    <div style="font-size:52px;margin-bottom:12px;">🌟</div>
+    <div style="font-size:22px;font-weight:700;color:var(--gd);margin-bottom:6px;" id="bravo-title">Bravo !</div>
+    <div style="font-size:14px;color:var(--tl);margin-bottom:20px;" id="bravo-sub">Shift soumis avec succès</div>
+
+    <!-- Résumé shift -->
+    <div style="background:#F5EDD9;border-radius:12px;padding:14px;margin-bottom:20px;text-align:left;">
+      <div style="font-size:11px;font-weight:600;color:var(--gold-dark);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;">Résumé du shift</div>
+      <div id="bravo-stats" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button onclick="fermerBravo()" 
+        style="padding:13px;border-radius:10px;background:var(--gd);color:var(--gold);border:none;font-size:14px;font-weight:600;cursor:pointer;">
+        ✓ Terminer
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -751,14 +773,69 @@ window.sauvegarderChambre = async () => {
 
 // ── Soumettre shift ───────────────────────────────────────────────────────────
 window.soumettreShift = async () => {
+  const ch = Object.values(chambresData);
+  const zones = Object.values(zonesData);
+  const incidents = Object.values(incidentsData);
+
+  const nbChambres  = ch.filter(c => c.statut !== 'occupee').length;
+  const nbValidees  = ch.filter(c => c.statut === 'validee').length;
+  const nbOccupees  = ch.filter(c => c.statut === 'occupee').length;
+  const nbZones     = zones.length;
+  const nbZonesFait = zones.filter(z => z.statut === 'fait').length;
+  const nbIncidents = incidents.filter(i => i.statut === 'resolu').length;
+
   await ouvrirShift(profil.hotel_id, {
     shift: shiftActif,
-    gouvernante_id: profil.uid,
+    gouvernante_id:  profil.uid,
     gouvernante_nom: profil.nom,
-    nb_chambres: Object.keys(chambresData).length,
+    nb_chambres:     nbChambres,
+    nb_validees:     nbValidees,
+    nb_zones:        nbZones,
+    submitted_at:    Date.now()
   });
-  showToast('✅ Shift soumis avec succès !');
-  setTimeout(() => { document.getElementById('submit-btn').textContent = 'Shift soumis ✓'; }, 500);
+
+  // Afficher le modal Bravo
+  const prenom = profil.nom?.split(' ').slice(-1)[0] || profil.nom || '';
+  document.getElementById('bravo-title').textContent = `Bravo ${prenom} !`;
+  document.getElementById('bravo-sub').textContent =
+    `Shift ${shiftActif === 'matin' ? 'matin ☀' : 'soir 🌙'} soumis avec succès`;
+
+  document.getElementById('bravo-stats').innerHTML = `
+    <div style="display:flex;justify-content:space-between;font-size:13px;">
+      <span style="color:var(--tm);">🚪 Chambres traitées</span>
+      <span style="font-weight:600;color:var(--gd);">${nbValidees} / ${nbChambres}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;">
+      <span style="color:var(--tm);">🏢 Zones validées</span>
+      <span style="font-weight:600;color:var(--gd);">${nbZonesFait} / ${nbZones}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;">
+      <span style="color:var(--tm);">🛏 Chambres occupées</span>
+      <span style="font-weight:600;color:var(--tl);">${nbOccupees} (hors périmètre)</span>
+    </div>
+    ${nbIncidents > 0 ? `
+    <div style="display:flex;justify-content:space-between;font-size:13px;">
+      <span style="color:var(--tm);">🔧 Incidents résolus</span>
+      <span style="font-weight:600;color:var(--green);">${nbIncidents}</span>
+    </div>` : ''}
+    <div style="border-top:0.5px solid var(--cb);padding-top:8px;margin-top:4px;display:flex;justify-content:space-between;font-size:13px;">
+      <span style="color:var(--tm);">📅 Soumis le</span>
+      <span style="font-weight:600;color:var(--tm);">${new Date().toLocaleDateString('fr-FR', {day:'numeric',month:'long',year:'numeric'})}</span>
+    </div>`;
+
+  document.getElementById('modal-bravo').classList.add('open');
+  const btn = document.getElementById('submit-btn');
+  btn.textContent = 'Shift soumis ✓';
+  btn.disabled = true;
+  btn.classList.remove('active');
+  btn.style.background = '';
+  btn.style.color = '';
+  btn.style.cursor = 'not-allowed';
+  btn.style.opacity = '1';
+};
+
+window.fermerBravo = () => {
+  document.getElementById('modal-bravo').classList.remove('open');
 };
 
 // ── Logout ────────────────────────────────────────────────────────────────────
