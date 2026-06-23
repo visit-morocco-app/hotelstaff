@@ -219,17 +219,35 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
     </div>
     <div class="form-group">
       <label class="form-label">Mot de passe provisoire</label>
-      <input class="form-input" type="password" id="user-pass" placeholder="Minimum 6 caractères">
+      <input class="form-input" type="password" id="user-pass" placeholder="Minimum 6 caractères" value="Hotel2024!">
     </div>
     <div class="form-group">
       <label class="form-label">Rôle</label>
-      <select class="form-select" id="user-role">
-        <option value="gouv_generale">Gouvernante Générale</option>
-        <option value="gouv_etage">Gouvernante d'étage</option>
-        <option value="staff">Staff / Femme de chambre</option>
-        <option value="reception">Réception</option>
-        <option value="maintenance">Maintenance</option>
-      </select>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <button type="button" id="role-btn-gouv_generale" onclick="selRole('gouv_generale')"
+            style="padding:9px;border-radius:8px;border:1px solid #EDE8DC;background:#FDFCFA;color:#1A1714;font-size:12px;font-family:inherit;cursor:pointer;text-align:left;">
+            👑 Gouvernante Générale
+          </button>
+          <button type="button" id="role-btn-gouv_etage" onclick="selRole('gouv_etage')"
+            style="padding:9px;border-radius:8px;border:1px solid #EDE8DC;background:#FDFCFA;color:#1A1714;font-size:12px;font-family:inherit;cursor:pointer;text-align:left;">
+            🔑 Gouvernante Étage
+          </button>
+          <button type="button" id="role-btn-staff" onclick="selRole('staff')"
+            style="padding:9px;border-radius:8px;border:2px solid var(--anthracite);background:var(--anthracite);color:#fff;font-size:12px;font-family:inherit;cursor:pointer;text-align:left;">
+            🧹 Staff / Femme de chambre
+          </button>
+          <button type="button" id="role-btn-reception" onclick="selRole('reception')"
+            style="padding:9px;border-radius:8px;border:1px solid #EDE8DC;background:#FDFCFA;color:#1A1714;font-size:12px;font-family:inherit;cursor:pointer;text-align:left;">
+            🛎 Réception
+          </button>
+          <button type="button" id="role-btn-maintenance" onclick="selRole('maintenance')"
+            style="padding:9px;border-radius:8px;border:1px solid #EDE8DC;background:#FDFCFA;color:#1A1714;font-size:12px;font-family:inherit;cursor:pointer;text-align:left;">
+            🔧 Maintenance
+          </button>
+        </div>
+      </div>
+      <input type="hidden" id="user-role" value="staff">
     </div>
     <div class="form-group" id="etage-group" style="display:none;">
       <label class="form-label">Étage assigné</label>
@@ -238,6 +256,26 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
     <div class="modal-actions">
       <button class="modal-btn modal-btn-cancel" onclick="closeModal('modal-user')">Annuler</button>
       <button class="modal-btn modal-btn-primary" onclick="sauvegarderUser()">Créer le compte</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal confirmation suppression utilisateur -->
+<div class="modal-overlay" id="modal-confirm-user">
+  <div class="modal" style="text-align:center;padding:28px 24px;">
+    <div style="font-size:40px;margin-bottom:12px;">🗑️</div>
+    <div style="font-size:17px;font-weight:700;color:#1A1714;margin-bottom:8px;">Supprimer cet utilisateur ?</div>
+    <div style="font-size:13px;color:#9C9080;margin-bottom:4px;" id="confirm-user-nom"></div>
+    <div style="font-size:12px;color:#C0504D;margin-bottom:24px;">Cette action est irréversible.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <button onclick="closeModal('modal-confirm-user')"
+        style="padding:12px;border-radius:10px;background:#F5F0F0;color:#5C5347;border:none;font-size:14px;font-weight:500;cursor:pointer;">
+        Annuler
+      </button>
+      <button id="confirm-user-btn"
+        style="padding:12px;border-radius:10px;background:#C0504D;color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;">
+        Supprimer
+      </button>
     </div>
   </div>
 </div>
@@ -552,7 +590,13 @@ function renderUsers() {
                   <div class="item-name">${u.nom||'—'}</div>
                   <div class="item-sub">${u.email||'—'}</div>
                 </div>
-                <span class="role-badge ${ROLE_CLASS[u.role]||''}">${ROLE_LABELS[u.role]||u.role}</span>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span class="role-badge ${ROLE_CLASS[u.role]||''}">${ROLE_LABELS[u.role]||u.role}</span>
+                  <button onclick="supprimerUser('${u.id}','${u.nom||u.email}')"
+                    style="background:#FAEAEA;color:#C0504D;border:none;border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;flex-shrink:0;">
+                    🗑
+                  </button>
+                </div>
               </div>`).join('')}
           </div>` : '<div style="text-align:center;padding:24px;color:var(--tl);">Aucun utilisateur configuré</div>'}
       </div>
@@ -710,6 +754,22 @@ window.genererChambres = async () => {
   showToast(`✅ ${total} chambres générées !`);
 };
 
+// ── Supprimer utilisateur ────────────────────────────────────────────────────
+window.supprimerUser = (uid, nom) => {
+  document.getElementById('confirm-user-nom').textContent = nom;
+  document.getElementById('modal-confirm-user').classList.add('open');
+  document.getElementById('confirm-user-btn').onclick = async () => {
+    try {
+      await remove(ref(db, `hotels/${profil.hotel_id}/staff/${uid}`));
+      await remove(ref(db, `users/${uid}`));
+      closeModal('modal-confirm-user');
+      showToast(`✅ ${nom} supprimé`);
+    } catch(e) {
+      showToast('⚠ Erreur : ' + e.message);
+    }
+  };
+};
+
 // ── Actions Chambres ──────────────────────────────────────────────────────────
 window.ouvrirModalChambre = (id = null) => {
   chambreEditId = id;
@@ -785,6 +845,27 @@ window.supprimerZone = (id) => {
 };
 
 // ── Actions Users ─────────────────────────────────────────────────────────────
+window.selRole = (role) => {
+  document.getElementById('user-role').value = role;
+  ['gouv_generale','gouv_etage','staff','reception','maintenance'].forEach(r => {
+    const btn = document.getElementById(`role-btn-${r}`);
+    if(!btn) return;
+    if(r === role) {
+      btn.style.background = 'var(--anthracite)';
+      btn.style.borderColor = 'var(--anthracite)';
+      btn.style.borderWidth = '2px';
+      btn.style.color = '#fff';
+    } else {
+      btn.style.background = '#FDFCFA';
+      btn.style.borderColor = '#EDE8DC';
+      btn.style.borderWidth = '1px';
+      btn.style.color = '#1A1714';
+    }
+  });
+  // Afficher champ étage si GE
+  document.getElementById('etage-group').style.display = role === 'gouv_etage' ? 'flex' : 'none';
+};
+
 window.ouvrirModalUser = () => {
   document.getElementById('user-nom-input').value = '';
   document.getElementById('user-email').value     = '';
@@ -812,16 +893,22 @@ window.sauvegarderUser = async () => {
   if(pass.length < 6) { showToast('⚠ Mot de passe minimum 6 caractères'); return; }
 
   try {
-    // Utiliser une 2ème instance Firebase pour ne pas déconnecter le directeur
-    const app2  = initApp2({
-      apiKey:            "AIzaSyCse3b45dUFvI7weTAOogGgJhLvYAHiuUE",
-      authDomain:        "hotelstaff-prod.firebaseapp.com",
-      projectId:         "hotelstaff-prod",
-    }, "secondary");
+    // Utiliser une 2ème instance Firebase avec nom unique pour éviter les conflits
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+    const { getAuth, createUserWithEmailAndPassword, signOut } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");
+
+    const app2  = initializeApp({
+      apiKey:     "AIzaSyCse3b45dUFvI7weTAOogGgJhLvYAHiuUE",
+      authDomain: "hotelstaff-prod.firebaseapp.com",
+      projectId:  "hotelstaff-prod",
+      databaseURL:"https://hotelstaff-prod-default-rtdb.europe-west1.firebasedatabase.app"
+    }, `secondary_${Date.now()}`);
+
     const auth2 = getAuth(app2);
     const cred  = await createUserWithEmailAndPassword(auth2, email, pass);
     const uid   = cred.user.uid;
-    await auth2.signOut(); // Déconnecter immédiatement la 2ème instance
+    await signOut(auth2);
+
     const userData = { nom, email, role, hotel_id: profil.hotel_id, hotel_nom: profil.hotel_nom };
     if(etage && role === 'gouv_etage') userData.etage = etage;
 
@@ -829,9 +916,13 @@ window.sauvegarderUser = async () => {
     await set(ref(db, `hotels/${profil.hotel_id}/staff/${uid}`), { nom, email, role, online: false });
 
     closeModal('modal-user');
+    // Vider le formulaire
+    document.getElementById('user-nom-input').value = '';
+    document.getElementById('user-email').value = '';
+    document.getElementById('user-pass').value = 'Hotel2024!';
     showToast(`✅ Compte créé pour ${nom}`);
   } catch(e) {
-    if(e.code === 'auth/email-already-in-use') showToast('⚠ Email déjà utilisé');
+    if(e.code === 'auth/email-already-in-use') showToast('⚠ Email déjà utilisé — supprimez d\'abord l\'ancien compte');
     else showToast('⚠ Erreur : ' + e.message);
   }
 };

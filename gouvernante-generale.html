@@ -461,7 +461,9 @@ function renderChambres() {
               <div class="ch-num">${c.num}</div>
               <div class="ch-info">
                 <div class="ch-type">${TYPES[c.type]||c.type}</div>
-                ${c.assignee_nom
+                ${c.statut === 'occupee'
+                  ? `<div style="font-size:11px;color:var(--tl);margin-top:2px;">Client présent</div>`
+                  : c.assignee_nom
                   ? `<div style="font-size:11px;color:var(--tl);margin-top:2px;">👤 ${c.assignee_nom}</div>`
                   : `<div style="font-size:11px;color:#C0504D;margin-top:2px;">Non assignée</div>`}
               </div>
@@ -638,38 +640,63 @@ window.traiterReappro = async (id) => {
 
 // ── Render équipe étages ──────────────────────────────────────────────────────
 function renderEquipe() {
-  const equipe = [
-    { id: 'i3NVFIO6nFNa5h0sLK90Knn5lzJ2', nom: 'Mme Idrissi', etage: 1, present: true },
-  ];
-  const total    = equipe.length;
-  const presents = equipe.filter(g => g.present).length;
-  const absents  = equipe.filter(g => !g.present).length;
+  const staffVals = Object.entries(staffData)
+    .map(([k,v]) => ({id:k,...v}))
+    .filter(s => s.role === 'staff' || s.role === 'gouv_etage')
+    .sort((a,b) => {
+      if(a.role === 'gouv_etage' && b.role !== 'gouv_etage') return -1;
+      if(b.role === 'gouv_etage' && a.role !== 'gouv_etage') return 1;
+      return (a.nom||'').localeCompare(b.nom||'');
+    });
 
-  document.getElementById('sub-equipe').textContent = `${presents} / ${total} présente${total>1?'s':''}`;
+  const total   = staffVals.length;
+  const present = staffVals.filter(s => s.online).length;
+
+  document.getElementById('sub-equipe').textContent = `${total} membre${total>1?'s':''}`;
   const badge = document.getElementById('badge-equipe');
-  if(absents === 0) { badge.textContent = 'Toutes présentes ✓'; badge.className = 'ok-badge'; }
-  else { badge.textContent = `${absents} absente${absents>1?'s':''}`; badge.className = 'warn-badge'; }
+  badge.textContent = total > 0 ? `${total} membre${total>1?'s':''}` : '—';
+  badge.className   = total > 0 ? 'ok-badge' : 'warn-badge';
 
-  document.getElementById('equipe-list').innerHTML = equipe.map(g => `
-    <div class="ch-row">
-      <div style="width:36px;height:36px;border-radius:50%;background:#F5EDD9;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--gd);flex-shrink:0;">
-        ${g.nom.split(' ').map(w=>w[0]).join('').slice(0,2)}
+  if(!staffVals.length) {
+    document.getElementById('equipe-list').innerHTML =
+      '<div style="padding:16px;text-align:center;color:var(--tl);font-size:13px;">Aucun staff configuré</div>';
+    return;
+  }
+
+  const chVals = Object.values(chambresData);
+
+  document.getElementById('equipe-list').innerHTML = staffVals.map(s => {
+    const mesCh    = chVals.filter(c => c.assignee_nom === s.nom);
+    const validees = mesCh.filter(c => c.statut === 'validee').length;
+    const enCours  = mesCh.filter(c => c.statut === 'en_cours').length;
+    const pct      = mesCh.length ? Math.round((validees / mesCh.length) * 100) : 0;
+    const roleLabel = s.role === 'gouv_etage' ? `Gouvernante · Étage ${s.etage||'?'}` : 'Femme de chambre';
+    const pctColor  = pct === 100 ? '#2D6A3F' : pct > 50 ? '#8B5E14' : '#C0504D';
+
+    return `
+    <div class="ch-row" style="padding:12px 14px;">
+      <div style="width:38px;height:38px;border-radius:50%;background:var(--gd);
+        display:flex;align-items:center;justify-content:center;
+        color:var(--gold);font-weight:700;font-size:15px;flex-shrink:0;">
+        ${(s.nom||'?').charAt(0)}
       </div>
-      <div class="ch-info" style="margin-left:10px;">
-        <div style="font-size:13px;font-weight:500;color:#1A1714;">${g.nom}</div>
-        <div class="ch-type">Gouvernante · Étage ${g.etage}</div>
+      <div class="ch-info" style="flex:1;">
+        <div style="font-size:13px;font-weight:600;color:#1A1714;">${s.nom}</div>
+        <div style="font-size:11px;color:var(--tl);margin-top:2px;">${roleLabel}</div>
+        ${mesCh.length > 0 ? `
+          <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+            <div style="flex:1;height:4px;background:#EDE8DC;border-radius:2px;overflow:hidden;">
+              <div style="height:100%;width:${pct}%;background:${pctColor};border-radius:2px;transition:width 0.3s;"></div>
+            </div>
+            <span style="font-size:10px;font-weight:600;color:${pctColor};">${validees}/${mesCh.length} ch.</span>
+          </div>` : `<div style="font-size:11px;color:#C0504D;margin-top:4px;">Aucune chambre assignée</div>`}
+        ${enCours > 0 ? `<div style="font-size:10px;color:#8B5E14;margin-top:2px;">🧹 ${enCours} en cours</div>` : ''}
       </div>
-      <div class="ch-right">
-        <span style="font-size:11px;padding:3px 8px;border-radius:20px;${g.present
-          ? 'background:#EAF3E8;color:#2D6A3F;'
-          : 'background:#FAEAEA;color:#8B2020;'}">
-          ${g.present ? '● Présente' : '● Absente'}
-        </span>
-        <div class="act-btn" onclick="togglePresence('${g.id}', ${g.present})">
-          <span style="font-size:13px;color:var(--tl);">✏</span>
-        </div>
+      <div class="ch-right" style="flex-direction:column;align-items:flex-end;gap:6px;">
+        ${mesCh.length > 0 ? `<span style="font-size:13px;font-weight:700;color:${pctColor};">${pct}%</span>` : ''}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 window.togglePresence = (id, present) => {
