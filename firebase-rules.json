@@ -1,65 +1,61 @@
 {
   "rules": {
-
     "users": {
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
-        ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'directeur' || root.child('users').child(auth.uid).child('role').val() === 'gouv_generale')"
       }
     },
-
     "hotels": {
       "$hotel_id": {
-
         ".read": "auth != null && (root.child('users').child(auth.uid).child('hotel_id').val() === $hotel_id || root.child('users').child(auth.uid).child('role').val() === 'admin')",
-
-        "nom":      { ".write": "auth != null && root.child('users').child(auth.uid).child('hotel_id').val() === $hotel_id && (root.child('users').child(auth.uid).child('role').val() === 'directeur' || root.child('users').child(auth.uid).child('role').val() === 'gouv_generale')" },
-        "ville":    { ".write": "auth != null && root.child('users').child(auth.uid).child('hotel_id').val() === $hotel_id && root.child('users').child(auth.uid).child('role').val() === 'directeur'" },
-        "logo":     { ".write": "auth != null && root.child('users').child(auth.uid).child('hotel_id').val() === $hotel_id && (root.child('users').child(auth.uid).child('role').val() === 'directeur' || root.child('users').child(auth.uid).child('role').val() === 'gouv_generale')" },
-        "nb_etages":{ ".write": "auth != null && root.child('users').child(auth.uid).child('hotel_id').val() === $hotel_id && root.child('users').child(auth.uid).child('role').val() === 'directeur'" },
-
+        "nom": {
+          ".write": "auth != null && root.child('users').child(auth.uid).child('hotel_id').val() === $hotel_id && (root.child('users').child(auth.uid).child('role').val() === 'directeur' || root.child('users').child(auth.uid).child('role').val() === 'gouv_generale')"
+        },
+        "ville": {
+          ".write": "auth != null && root.child('users').child(auth.uid).child('hotel_id').val() === $hotel_id && root.child('users').child(auth.uid).child('role').val() === 'directeur'"
+        },
+        "logo": {
+          ".write": "auth != null && root.child('users').child(auth.uid).child('hotel_id').val() === $hotel_id && (root.child('users').child(auth.uid).child('role').val() === 'directeur' || root.child('users').child(auth.uid).child('role').val() === 'gouv_generale')"
+        },
+        "nb_etages": {
+          ".write": "auth != null && root.child('users').child(auth.uid).child('hotel_id').val() === $hotel_id && root.child('users').child(auth.uid).child('role').val() === 'directeur'"
+        },
         "chambres": {
           "$chambre_id": {
             ".write": "auth != null && root.child('users').child(auth.uid).child('hotel_id').val() === $hotel_id && (root.child('users').child(auth.uid).child('role').val() === 'gouv_generale' || root.child('users').child(auth.uid).child('role').val() === 'gouv_etage' || root.child('users').child(auth.uid).child('role').val() === 'staff' || root.child('users').child(auth.uid).child('role').val() === 'reception' || root.child('users').child(auth.uid).child('role').val() === 'directeur' || root.child('users').child(auth.uid).child('role').val() === 'admin')"
           }
         },
-
         "zones": {
           "$zone_id": {
             ".write": "auth != null && root.child('users').child(auth.uid).child('hotel_id').val() === $hotel_id && (root.child('users').child(auth.uid).child('role').val() === 'gouv_generale' || root.child('users').child(auth.uid).child('role').val() === 'gouv_etage' || root.child('users').child(auth.uid).child('role').val() === 'directeur' || root.child('users').child(auth.uid).child('role').val() === 'admin')"
           }
         },
-
         "incidents": {
           "$incident_id": {
             ".write": "auth != null && root.child('users').child(auth.uid).child('hotel_id').val() === $hotel_id && (root.child('users').child(auth.uid).child('role').val() === 'staff' || root.child('users').child(auth.uid).child('role').val() === 'maintenance' || root.child('users').child(auth.uid).child('role').val() === 'gouv_generale' || root.child('users').child(auth.uid).child('role').val() === 'gouv_etage' || root.child('users').child(auth.uid).child('role').val() === 'admin')"
           }
         },
-
         "ralentissements": {
           "$ral_id": {
             ".write": "auth != null && root.child('users').child(auth.uid).child('hotel_id').val() === $hotel_id && (root.child('users').child(auth.uid).child('role').val() === 'staff' || root.child('users').child(auth.uid).child('role').val() === 'gouv_generale' || root.child('users').child(auth.uid).child('role').val() === 'gouv_etage' || root.child('users').child(auth.uid).child('role').val() === 'admin')"
           }
         },
-
         "reappro": {
           "$reappro_id": {
             ".write": "auth != null && root.child('users').child(auth.uid).child('hotel_id').val() === $hotel_id"
           }
         },
-
         "shifts": {
           "$shift_id": {
             ".write": "auth != null && root.child('users').child(auth.uid).child('hotel_id').val() === $hotel_id && (root.child('users').child(auth.uid).child('role').val() === 'gouv_generale' || root.child('users').child(auth.uid).child('role').val() === 'directeur' || root.child('users').child(auth.uid).child('role').val() === 'admin')"
           }
         },
-
         "staff": {
           "$staff_id": {
             ".write": "auth != null && root.child('users').child(auth.uid).child('hotel_id').val() === $hotel_id && (root.child('users').child(auth.uid).child('role').val() === 'directeur' || root.child('users').child(auth.uid).child('role').val() === 'gouv_generale' || root.child('users').child(auth.uid).child('role').val() === 'admin')"
           }
         }
-
       }
     }
   }

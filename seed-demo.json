@@ -1,0 +1,102 @@
+{
+  "users": {
+    "V1adLS016hZxwV9xzSQIWZIa6a83": {
+      "nom": "M. Benali", "email": "directeur@hotelatlas.ma",
+      "role": "directeur", "hotel_id": "hotel_atlas", "hotel_nom": "Hôtel Atlas Marrakech"
+    },
+    "pD49rKExsxMyrnlzntwyvf7JNyG2": {
+      "nom": "Mme Fassi", "email": "gouvernante@hotelatlas.ma",
+      "role": "gouv_generale", "hotel_id": "hotel_atlas", "hotel_nom": "Hôtel Atlas Marrakech"
+    },
+    "i3NVFIO6nFNa5h0sLK90Knn5lzJ2": {
+      "nom": "Mme Idrissi", "email": "etage1@hotelatlas.ma",
+      "role": "gouv_etage", "hotel_id": "hotel_atlas", "hotel_nom": "Hôtel Atlas Marrakech", "etage": 1
+    },
+    "HWy7NDb9c6fWkD6pJkE31YpSYY43": {
+      "nom": "Fatima", "email": "fatima@hotelatlas.ma",
+      "role": "staff", "hotel_id": "hotel_atlas", "hotel_nom": "Hôtel Atlas Marrakech"
+    },
+    "j9mLkXPDZsUvcX6YDMOHZxUUvCo1": {
+      "nom": "Karim", "email": "reception@hotelatlas.ma",
+      "role": "reception", "hotel_id": "hotel_atlas", "hotel_nom": "Hôtel Atlas Marrakech"
+    },
+    "fd5czIsiEMf6XAd1OmDdRcubogI2": {
+      "nom": "Hassan", "email": "maintenance@hotelatlas.ma",
+      "role": "maintenance", "hotel_id": "hotel_atlas", "hotel_nom": "Hôtel Atlas Marrakech"
+    }
+  },
+  "hotels": {
+    "hotel_atlas": {
+      "nom": "Hôtel Atlas Marrakech",
+      "ville": "Marrakech",
+      "nb_etages": 3,
+      "staff": {
+        "HWy7NDb9c6fWkD6pJkE31YpSYY43": { "nom": "Fatima", "email": "fatima@hotelatlas.ma", "role": "staff", "online": false },
+        "sara_uid": { "nom": "Sara", "email": "sara@hotelatlas.ma", "role": "staff", "online": false },
+        "nadia_uid": { "nom": "Nadia", "email": "nadia@hotelatlas.ma", "role": "staff", "online": false }
+      },
+      "chambres": {
+        "101": { "num": 101, "etage": 1, "type": "double",  "statut": "validee",  "assignee_id": "HWy7NDb9c6fWkD6pJkE31YpSYY43", "assignee_nom": "Fatima", "observation": "" },
+        "102": { "num": 102, "etage": 1, "type": "simple",  "statut": "en_cours", "assignee_id": "HWy7NDb9c6fWkD6pJkE31YpSYY43", "assignee_nom": "Fatima", "observation": "" },
+        "103": { "num": 103, "etage": 1, "type": "suite",   "statut": "occupee",  "assignee_id": "", "assignee_nom": "", "observation": "" },
+        "104": { "num": 104, "etage": 1, "type": "double",  "statut": "sale",     "assignee_id": "sara_uid", "assignee_nom": "Sara", "observation": "" },
+        "105": { "num": 105, "etage": 1, "type": "simple",  "statut": "occupee",  "assignee_id": "", "assignee_nom": "", "observation": "" },
+        "106": { "num": 106, "etage": 1, "type": "double",  "statut": "prete",    "assignee_id": "sara_uid", "assignee_nom": "Sara", "observation": "" },
+        "107": { "num": 107, "etage": 1, "type": "simple",  "statut": "validee",  "assignee_id": "nadia_uid", "assignee_nom": "Nadia", "observation": "" },
+        "108": { "num": 108, "etage": 1, "type": "suite",   "statut": "occupee",  "assignee_id": "", "assignee_nom": "", "observation": "" },
+        "109": { "num": 109, "etage": 1, "type": "double",  "statut": "sale",     "assignee_id": "", "assignee_nom": "", "observation": "" },
+        "110": { "num": 110, "etage": 1, "type": "simple",  "statut": "occupee",  "assignee_id": "", "assignee_nom": "", "observation": "" },
+        "201": { "num": 201, "etage": 2, "type": "double",  "statut": "validee",  "assignee_id": "nadia_uid", "assignee_nom": "Nadia", "observation": "" },
+        "202": { "num": 202, "etage": 2, "type": "simple",  "statut": "validee",  "assignee_id": "nadia_uid", "assignee_nom": "Nadia", "observation": "" },
+        "203": { "num": 203, "etage": 2, "type": "suite",   "statut": "occupee",  "assignee_id": "", "assignee_nom": "", "observation": "" },
+        "204": { "num": 204, "etage": 2, "type": "double",  "statut": "en_cours", "assignee_id": "sara_uid", "assignee_nom": "Sara", "observation": "" },
+        "205": { "num": 205, "etage": 2, "type": "simple",  "statut": "sale",     "assignee_id": "sara_uid", "assignee_nom": "Sara", "observation": "" },
+        "206": { "num": 206, "etage": 2, "type": "double",  "statut": "occupee",  "assignee_id": "", "assignee_nom": "", "observation": "" },
+        "207": { "num": 207, "etage": 2, "type": "simple",  "statut": "prete",    "assignee_id": "HWy7NDb9c6fWkD6pJkE31YpSYY43", "assignee_nom": "Fatima", "observation": "" },
+        "208": { "num": 208, "etage": 2, "type": "suite",   "statut": "validee",  "assignee_id": "HWy7NDb9c6fWkD6pJkE31YpSYY43", "assignee_nom": "Fatima", "observation": "" },
+        "209": { "num": 209, "etage": 2, "type": "double",  "statut": "occupee",  "assignee_id": "", "assignee_nom": "", "observation": "" },
+        "210": { "num": 210, "etage": 2, "type": "simple",  "statut": "sale",     "assignee_id": "", "assignee_nom": "", "observation": "" },
+        "301": { "num": 301, "etage": 3, "type": "suite",   "statut": "occupee",  "assignee_id": "", "assignee_nom": "", "observation": "" },
+        "302": { "num": 302, "etage": 3, "type": "double",  "statut": "validee",  "assignee_id": "sara_uid", "assignee_nom": "Sara", "observation": "" },
+        "303": { "num": 303, "etage": 3, "type": "simple",  "statut": "en_cours", "assignee_id": "nadia_uid", "assignee_nom": "Nadia", "observation": "" },
+        "304": { "num": 304, "etage": 3, "type": "double",  "statut": "sale",     "assignee_id": "nadia_uid", "assignee_nom": "Nadia", "observation": "" },
+        "305": { "num": 305, "etage": 3, "type": "suite",   "statut": "occupee",  "assignee_id": "", "assignee_nom": "", "observation": "" },
+        "306": { "num": 306, "etage": 3, "type": "double",  "statut": "prete",    "assignee_id": "sara_uid", "assignee_nom": "Sara", "observation": "" },
+        "307": { "num": 307, "etage": 3, "type": "simple",  "statut": "validee",  "assignee_id": "HWy7NDb9c6fWkD6pJkE31YpSYY43", "assignee_nom": "Fatima", "observation": "" },
+        "308": { "num": 308, "etage": 3, "type": "double",  "statut": "occupee",  "assignee_id": "", "assignee_nom": "", "observation": "" },
+        "309": { "num": 309, "etage": 3, "type": "simple",  "statut": "sale",     "assignee_id": "", "assignee_nom": "", "observation": "" },
+        "310": { "num": 310, "etage": 3, "type": "suite",   "statut": "occupee",  "assignee_id": "", "assignee_nom": "", "observation": "" }
+      },
+      "zones": {
+        "couloir_1": { "nom": "Couloir étage 1", "type": "couloir",  "statut": "fait",    "etage": 1 },
+        "couloir_2": { "nom": "Couloir étage 2", "type": "couloir",  "statut": "a_faire", "etage": 2 },
+        "couloir_3": { "nom": "Couloir étage 3", "type": "couloir",  "statut": "a_faire", "etage": 3 },
+        "lingerie":  { "nom": "Lingerie",         "type": "lingerie", "statut": "fait",    "etage": 0 },
+        "spa":       { "nom": "Spa & Hammam",     "type": "spa",      "statut": "a_faire", "etage": 0 },
+        "piscine":   { "nom": "Espace piscine",   "type": "piscine",  "statut": "a_faire", "etage": 0 }
+      },
+      "incidents": {
+        "inc_demo_1": {
+          "chambre": 204,
+          "description": "Climatisation en panne",
+          "signale_par": "Sara",
+          "urgence": "haute",
+          "type": "technique",
+          "statut": "en_cours",
+          "pris_en_charge_par": "Hassan",
+          "created_at": 1718960000000
+        }
+      },
+      "ralentissements": {
+        "ral_demo_1": {
+          "chambre": 102,
+          "description": "Rupture stock",
+          "signale_par": "Fatima",
+          "type": "bloquant",
+          "statut": "ouvert",
+          "created_at": 1718961000000
+        }
+      }
+    }
+  }
+}
