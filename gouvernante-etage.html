@@ -280,6 +280,7 @@ function initApp() {
   watchZones(profil.hotel_id, data => {
     zonesData = data || {};
     updateZonesCount();
+    if(tabActif === 'zones') renderZonesGE();
   });
 }
 
