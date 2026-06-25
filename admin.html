@@ -237,19 +237,25 @@ onAuth(async (user) => {
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
 async function loadStats() {
-  const hotelsSnap = await get(ref(db, 'hotels'));
-  const usersSnap  = await get(ref(db, 'users'));
-  const hotels = hotelsSnap.val() || {};
-  const users  = usersSnap.val()  || {};
+  try {
+    const hotelsSnap = await get(ref(db, 'hotels'));
+    const usersSnap  = await get(ref(db, 'users'));
+    console.log('hotels:', hotelsSnap.val());
+    console.log('users:', usersSnap.val());
+    const hotels = hotelsSnap.val() || {};
+    const users  = usersSnap.val()  || {};
 
-  document.getElementById('stat-hotels').textContent  = Object.keys(hotels).length;
-  document.getElementById('stat-users').textContent   = Object.keys(users).length;
+    document.getElementById('stat-hotels').textContent  = Object.keys(hotels).length;
+    document.getElementById('stat-users').textContent   = Object.keys(users).length;
 
-  let totalChambres = 0;
-  Object.values(hotels).forEach(h => {
-    totalChambres += Object.keys(h.chambres || {}).length;
-  });
-  document.getElementById('stat-chambres').textContent = totalChambres;
+    let totalChambres = 0;
+    Object.values(hotels).forEach(h => {
+      totalChambres += Object.keys(h.chambres || {}).length;
+    });
+    document.getElementById('stat-chambres').textContent = totalChambres;
+  } catch(e) {
+    console.error('Erreur loadStats:', e);
+  }
 }
 
 // ── Liste hôtels ──────────────────────────────────────────────────────────────
