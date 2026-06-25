@@ -255,6 +255,10 @@ function initApp() {
   }
   // Logo en temps réel
   watchHotel(profil.hotel_id, hotel => {
+    if(hotel.nom) {
+      const el = document.getElementById('hotel-name');
+      if(el) el.textContent = hotel.nom;
+    }
     if(hotel.logo) {
       const wrap = document.getElementById('hotel-logo-wrap');
       const img  = document.getElementById('hotel-logo-img');

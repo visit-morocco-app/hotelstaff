@@ -343,7 +343,7 @@ import { onAuth, getUserProfile, logout,
          watchStaff, ouvrirShift, cloturerShift,
          watchReappro, updateReappro,
          watchRalentissements, updateRalentissement,
-         watchIncidents } from './firebase.js';
+         watchIncidents, watchHotel } from './firebase.js';
 
 let profil = null;
 let reapproData = {};
@@ -380,6 +380,17 @@ function initApp() {
   document.getElementById('avatar-initials').textContent = initiales;
   afficherDate();
   watchChambres(profil.hotel_id, data => { chambresData = data || {}; renderChambres(); updateSubmit(); });
+  watchHotel(profil.hotel_id, hotel => {
+    if(hotel.nom) {
+      const el = document.getElementById('hotel-name');
+      if(el) el.textContent = hotel.nom;
+    }
+    if(hotel.logo) {
+      const wrap = document.getElementById('hotel-logo-wrap');
+      const img  = document.getElementById('hotel-logo-img');
+      if(wrap && img) { img.src = hotel.logo; wrap.style.display = 'block'; }
+    }
+  });
   watchZones(profil.hotel_id,   data => { zonesData   = data || {}; renderZones();   updateSubmit(); });
   watchStaff(profil.hotel_id,   data => { staffData   = data || {}; renderEquipe(); });
   watchReappro(profil.hotel_id, data => { reapproData = data || {}; renderReappro(); });
