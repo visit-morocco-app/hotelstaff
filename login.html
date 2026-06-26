@@ -4,20 +4,36 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>HotelStaff — Connexion</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0F6E56">
 <link rel="stylesheet" href="style.css">
 <style>
   .version { font-size: 11px; color: var(--muted); margin-top: 32px; }
   .divider { display:flex; align-items:center; gap:10px; margin: 4px 0; }
   .divider span { font-size:12px; color:var(--muted); white-space:nowrap; }
   .divider::before, .divider::after { content:''; flex:1; height:0.5px; background:var(--border); }
+  .hs-login-logo {
+    width: 72px; height: 72px;
+    background: #0F6E56;
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 22px;
+  }
+  .hs-login-logo span {
+    font-size: 28px;
+    font-weight: 900;
+    color: #ffffff;
+    font-family: 'Arial Black', sans-serif;
+    letter-spacing: -1px;
+  }
 </style>
 </head>
 <body>
 
 <div class="hs-login" id="login-screen">
-  <!-- Logo -->
+  <!-- Logo HS -->
   <div class="hs-login-logo">
-    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>HS</span>
   </div>
 
   <h1 class="hs-login-title">HotelStaff</h1>
@@ -50,7 +66,6 @@
 <script type="module">
 import { login, onAuth, getUserProfile, ROLE_PAGES } from './firebase.js';
 
-// Si déjà connecté → redirect direct
 onAuth(async (user) => {
   document.getElementById('loading').style.display = 'none';
   if (user) {
@@ -64,7 +79,6 @@ onAuth(async (user) => {
   }
 });
 
-// Login
 document.getElementById('btn-login').addEventListener('click', async () => {
   const email = document.getElementById('email').value.trim();
   const pass  = document.getElementById('pass').value;
@@ -99,10 +113,15 @@ document.getElementById('btn-login').addEventListener('click', async () => {
   }
 });
 
-// Entrée clavier
 document.getElementById('pass').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('btn-login').click();
 });
+</script>
+
+<script>
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js');
+  }
 </script>
 </body>
 </html>
