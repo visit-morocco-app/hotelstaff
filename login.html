@@ -31,27 +31,20 @@
 <body>
 
 <div class="hs-login" id="login-screen">
-  <!-- Logo HS -->
   <div class="hs-login-logo">
     <span>HS</span>
   </div>
-
   <h1 class="hs-login-title">HotelStaff</h1>
   <p class="hs-login-sub">Connectez-vous à votre espace</p>
-
   <div class="hs-login-form">
-    <input class="hs-input" type="email"    id="email" placeholder="Adresse email" autocomplete="email">
-    <input class="hs-input" type="password" id="pass"  placeholder="Mot de passe" autocomplete="current-password">
-    <button class="hs-btn hs-btn-primary hs-btn-full" id="btn-login">
-      Se connecter
-    </button>
+    <input class="hs-input" type="email" id="email" placeholder="Adresse email" autocomplete="email">
+    <input class="hs-input" type="password" id="pass" placeholder="Mot de passe" autocomplete="current-password">
+    <button class="hs-btn hs-btn-primary hs-btn-full" id="btn-login">Se connecter</button>
     <div class="hs-login-error" id="login-error">Email ou mot de passe incorrect</div>
   </div>
-
   <p class="version">HotelStaff v1.0 · Par Amine</p>
 </div>
 
-<!-- Spinner pendant vérification auth -->
 <div id="loading" style="position:fixed;inset:0;background:var(--surface);display:flex;align-items:center;justify-content:center;z-index:400;">
   <div style="text-align:center">
     <div style="width:36px;height:36px;border:3px solid var(--teal-light);border-top-color:var(--teal);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 12px;"></div>
@@ -65,6 +58,48 @@
 
 <script type="module">
 import { login, onAuth, getUserProfile, ROLE_PAGES } from './firebase.js';
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+// Mapping rôle → clé module Firebase
+const ROLE_MODULE = {
+  directeur:     'directeur',
+  gouv_generale: 'gouvernante_generale',
+  gouv_etage:    'gouvernante_etage',
+  staff:         'staff',
+  reception:     'reception',
+  maintenance:   'maintenance'
+};
+
+async function getModules(hotelId) {
+  try {
+    const db = getDatabase(getApp());
+    const snap = await get(ref(db, `hotels/${hotelId}/modules`));
+    return snap.val() || null;
+  } catch(e) { return null; }
+}
+
+async function redirigerUtilisateur(profil) {
+  const page = ROLE_PAGES[profil.role];
+  if (!page) return false;
+
+  // Si pas de modules configurés → accès libre (anciens hôtels)
+  const modules = await getModules(profil.hotel_id);
+  if (!modules) { window.location.href = page; return true; }
+
+  const moduleKey = ROLE_MODULE[profil.role];
+  if (modules[moduleKey] === false) {
+    // Module désactivé
+    document.getElementById('loading').style.display = 'none';
+    const errEl = document.getElementById('login-error');
+    errEl.textContent = 'Votre espace n\'est pas activé. Contactez votre directeur.';
+    errEl.classList.add('show');
+    return false;
+  }
+
+  window.location.href = page;
+  return true;
+}
 
 onAuth(async (user) => {
   document.getElementById('loading').style.display = 'none';
@@ -73,9 +108,7 @@ onAuth(async (user) => {
       window.location.href = 'admin.html'; return;
     }
     const profil = await getUserProfile(user.uid);
-    if (profil && ROLE_PAGES[profil.role]) {
-      window.location.href = ROLE_PAGES[profil.role];
-    }
+    if (profil) await redirigerUtilisateur(profil);
   }
 });
 
@@ -97,8 +130,9 @@ document.getElementById('btn-login').addEventListener('click', async () => {
   try {
     const cred   = await login(email, pass);
     const profil = await getUserProfile(cred.user.uid);
-    if (profil && ROLE_PAGES[profil.role]) {
-      window.location.href = ROLE_PAGES[profil.role];
+    if (profil) {
+      const redirige = await redirigerUtilisateur(profil);
+      if (!redirige) { btn.textContent = 'Se connecter'; btn.disabled = false; }
     } else if (cred.user.email === 'amine.assou.pro@gmail.com') {
       window.location.href = 'admin.html';
     } else {

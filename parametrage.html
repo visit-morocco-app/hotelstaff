@@ -351,7 +351,7 @@ import { onAuth, getUserProfile, logout,
          watchChambres, updateChambre,
          watchZones, updateZone,
          watchStaff, db } from './firebase.js';
-import { ref, set, update, remove, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { ref, set, update, remove, push, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { initializeApp as initApp2 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 
@@ -371,6 +371,16 @@ onAuth(async (user) => {
     document.getElementById('guard-screen').classList.add('show'); return;
   }
   initApp();
+
+  // Charger les modules existants
+  const hotelSnap = await get(ref(db, `hotels/${profil.hotel_id}/modules`));
+  const modules = hotelSnap.val() || {};
+  if(document.getElementById('mod-gg')) document.getElementById('mod-gg').checked = modules.gouvernante_generale !== false;
+  if(document.getElementById('mod-ge')) document.getElementById('mod-ge').checked = modules.gouvernante_etage !== false;
+  if(document.getElementById('mod-maintenance')) document.getElementById('mod-maintenance').checked = modules.maintenance !== false;
+  if(document.getElementById('mod-reception')) document.getElementById('mod-reception').checked = modules.reception !== false;
+  if(document.getElementById('mod-staff')) document.getElementById('mod-staff').checked = modules.staff !== false;
+
 });
 
 function initApp() {
@@ -444,6 +454,39 @@ function renderHotel() {
         </div>
       </div>
       <button class="btn btn-primary btn-full" onclick="sauvegarderHotel()">💾 Enregistrer</button>
+    </div>
+  </div>
+
+
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Modules activés</div>
+        <div class="section-sub">Activez uniquement les espaces utilisés par votre équipe</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;padding:10px;border:0.5px solid var(--cb);border-radius:8px;background:#f5f5f5;cursor:not-allowed;opacity:0.7;">
+          <input type="checkbox" id="mod-directeur" checked disabled> Directeur <span style="font-size:10px;color:#999;margin-left:auto;">Inclus</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;padding:10px;border:0.5px solid var(--cb);border-radius:8px;cursor:pointer;">
+          <input type="checkbox" id="mod-gg"> Gouvernante Générale
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;padding:10px;border:0.5px solid var(--cb);border-radius:8px;cursor:pointer;">
+          <input type="checkbox" id="mod-ge"> Gouvernante Étage
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;padding:10px;border:0.5px solid var(--cb);border-radius:8px;cursor:pointer;">
+          <input type="checkbox" id="mod-maintenance"> Maintenance
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;padding:10px;border:0.5px solid var(--cb);border-radius:8px;cursor:pointer;">
+          <input type="checkbox" id="mod-reception"> Réception
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;padding:10px;border:0.5px solid var(--cb);border-radius:8px;cursor:pointer;">
+          <input type="checkbox" id="mod-staff"> Staff
+        </label>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="sauvegarderModules()">💾 Enregistrer les modules</button>
     </div>
   </div>
 
@@ -630,6 +673,20 @@ function chargerLogoExistant() {
 }
 
 // ── Actions Hôtel ─────────────────────────────────────────────────────────────
+
+window.sauvegarderModules = async () => {
+  const modules = {
+    directeur:            true,
+    gouvernante_generale: document.getElementById('mod-gg').checked,
+    gouvernante_etage:    document.getElementById('mod-ge').checked,
+    maintenance:          document.getElementById('mod-maintenance').checked,
+    reception:            document.getElementById('mod-reception').checked,
+    staff:                document.getElementById('mod-staff').checked,
+  };
+  await update(ref(db, `hotels/${profil.hotel_id}`), { modules });
+  showToast('✅ Modules mis à jour');
+};
+
 window.sauvegarderHotel = async () => {
   const nom = document.getElementById('hotel-nom-input').value.trim();
   if(!nom) { showToast('⚠ Entrez le nom de l\'hôtel'); return; }
