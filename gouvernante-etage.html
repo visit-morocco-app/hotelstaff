@@ -199,6 +199,9 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
     <button class="tab" id="tab-zones" onclick="setTab('zones')">
       Zones <span class="tab-count" id="count-zones">0</span>
     </button>
+    <button class="tab" id="tab-assignation" onclick="setTab('assignation')">
+      Assignation
+    </button>
   </div>
 
   <div class="content" id="content"></div>
@@ -248,11 +251,14 @@ import { onAuth, getUserProfile, logout,
          watchHotel,
          watchChambres, updateChambre, signalerIncident,
          watchIncidents, watchRalentissements, updateRalentissement,
-         watchZones, updateZone } from './firebase.js';
+         watchZones, updateZone, watchStaff } from './firebase.js';
 let profil = null;
 let incidentsData = {};
 let ralentissementsData = {};
 let zonesData = {};
+let staffData = {};
+let chambreAssignEnCours = null;
+let staffSelectionne = null;
 let chambresData = {};
 let tabActif = 'controle';
 let chambreSelectee = null;
@@ -323,6 +329,7 @@ function initApp() {
     ralentissementsData = data || {};
     renderProblemes();
   });
+  watchStaff(profil.hotel_id, data => { staffData = data || {}; });
   watchZones(profil.hotel_id, data => {
     zonesData = data || {};
     updateZonesCount();
@@ -337,6 +344,7 @@ window.setTab = (t) => {
   document.getElementById('tab-toutes').classList.toggle('active', t === 'toutes');
   document.getElementById('tab-problemes').classList.toggle('active', t === 'problemes');
   document.getElementById('tab-zones').classList.toggle('active', t === 'zones');
+  document.getElementById('tab-assignation').classList.toggle('active', t === 'assignation');
   if(t === 'zones') renderZonesGE(); else render();
 };
 
@@ -379,6 +387,9 @@ function render() {
       ${aControler.map(c => carteControle(c)).join('')}`;
   } else if(tabActif === 'problemes') {
     renderProblemes();
+  } else if(tabActif === 'assignation') {
+    renderAssignation();
+    return;
   } else {
     // Tableau de bord — vue supervision sans actions
     const counts = { sale:0, en_cours:0, prete:0, validee:0, occupee:0 };
@@ -706,6 +717,85 @@ window.executerDeconnexion = async () => {
 
 
 window.closeModal = (id, e) => { if(e && e.target.id !== id) return; document.getElementById(id).classList.remove('open'); };
+
+function renderAssignation() {
+  const monEtage = parseInt(profil.etage);
+  const mesCh = Object.entries(chambresData)
+    .map(([k,v]) => ({id:k,...v}))
+    .filter(c => parseInt(c.etage) === monEtage)
+    .sort((a,b) => a.num - b.num);
+
+  const el = document.getElementById('content');
+  if(!mesCh.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🛏</div><div class="empty-title">Aucune chambre</div></div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="section-title" style="padding:14px 16px 8px;">Assignation — Étage ${monEtage}</div>
+    <div style="padding:0 16px 100px;">
+      ${mesCh.map(c => `
+        <div style="background:#fff;border-radius:12px;border:0.5px solid var(--cb);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div>
+            <div style="font-size:18px;font-weight:700;">${c.num}</div>
+            <div style="font-size:11px;color:var(--tl);">${c.assignee_nom ? '👤 ' + c.assignee_nom : 'Non assignée'}</div>
+          </div>
+          ${c.assignee_nom
+            ? `<button onclick="ouvrirModalAssign('${c.id}')" style="background:#F0F0F0;color:#555;border:none;border-radius:8px;padding:8px 12px;font-size:16px;cursor:pointer;flex-shrink:0;" title="Modifier l'assignation">✏️</button>`
+            : `<button onclick="ouvrirModalAssign('${c.id}')" style="background:var(--gd);color:var(--gold);border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;">Assigner</button>`
+          }
+        </div>`).join('')}
+    </div>`;
+}
+
+window.ouvrirModalAssign = (chambreId) => {
+  window._assignState = window._assignState || {};
+  window._assignState.chambreId = chambreId;
+  window._assignState.staffSelectionne = chambresData[chambreId]?.assignee_id || null;
+  const c = chambresData[chambreId];
+  document.getElementById('modal-assign-title').textContent = `Chambre ${c?.num}`;
+
+  const staffList = Object.entries(staffData)
+    .map(([k,v]) => ({id:k,...v}))
+    .filter(s => ['staff','gouv_etage'].includes(s.role))
+    .sort((a,b) => (a.nom||'').localeCompare(b.nom||''));
+
+  const sel = window._assignState.staffSelectionne;
+  document.getElementById('modal-assign-staff').innerHTML = staffList.length
+    ? staffList.map(s => `
+        <div onclick="selStaffGE('${s.id}')" id="staff-ge-${s.id}"
+          style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1.5px solid ${sel===s.id?'var(--gd)':'var(--cb)'};background:${sel===s.id?'#F5EDD9':'#fff'};cursor:pointer;margin-bottom:8px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--gd);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--gold);">${(s.nom||'?')[0]}</div>
+          <div style="font-size:14px;font-weight:500;">${s.nom}</div>
+        </div>`).join('')
+    : '<div style="color:var(--tl);text-align:center;padding:16px;">Aucun staff disponible</div>';
+
+  document.getElementById('modal-assign-ge').classList.add('open');
+};
+
+window.selStaffGE = (id) => {
+  window._assignState = window._assignState || {};
+  window._assignState.staffSelectionne = id;
+  document.querySelectorAll('[id^="staff-ge-"]').forEach(el => {
+    const isSelected = el.id === `staff-ge-${id}`;
+    el.style.borderColor = isSelected ? 'var(--gd)' : 'var(--cb)';
+    el.style.background = isSelected ? '#F5EDD9' : '#fff';
+  });
+};
+
+window.sauvegarderAssignGE = async () => {
+  const state = window._assignState || {};
+  if(!state.chambreId) return;
+  const staff = staffData[state.staffSelectionne];
+        await updateChambre(profil.hotel_id, state.chambreId, {
+    assignee_id: state.staffSelectionne || '',
+    assignee_nom: staff?.nom || ''
+  });
+  document.getElementById('modal-assign-ge').classList.remove('open');
+  window._assignState = {};
+  showToast('✅ Chambre assignée');
+};
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
@@ -727,6 +817,21 @@ function showToast(msg) {
     <div style="display:flex;gap:10px;">
       <button onclick="fermerModalDeconnexion()" style="flex:1;padding:11px;border-radius:10px;border:0.5px solid rgba(0,0,0,0.1);background:#f5f5f5;font-size:14px;cursor:pointer;">Annuler</button>
       <button onclick="executerDeconnexion()" style="flex:1;padding:11px;border-radius:10px;border:none;background:#A32D2D;color:#fff;font-size:14px;font-weight:600;cursor:pointer;">Déconnecter</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal assignation GE -->
+<div class="modal-overlay" id="modal-assign-ge">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-assign-title">Assigner la chambre</div>
+    <div class="modal-sub">Sélectionnez un membre du staff</div>
+    <div id="modal-assign-staff" style="max-height:300px;overflow-y:auto;"></div>
+    <div class="modal-actions" style="margin-top:12px;">
+      <button class="modal-btn modal-btn-cancel" onclick="document.getElementById('modal-assign-ge').classList.remove('open')">Annuler</button>
+      <button class="modal-btn modal-btn-primary" onclick="sauvegarderAssignGE()">Enregistrer</button>
     </div>
   </div>
 </div>
